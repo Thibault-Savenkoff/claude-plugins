@@ -1,0 +1,14 @@
+{
+  "name": "claude-model-advisor",
+  "version": "1.0.0",
+  "description": "Analyzes code tasks and context to recommend the optimal Claude model (Haiku 4.5, Sonnet 5, Opus 5) and reasoning effort level (Low to Ultracode).",
+  "author": {
+    "name": "Thibault SAVENKOFF"
+  },
+  "keywords": [
+    "model-routing",
+    "token-optimization",
+    "reasoning-effort",
+    "ultracode"
+  ]
+}

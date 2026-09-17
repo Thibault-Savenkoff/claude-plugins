@@ -1,0 +1,22 @@
+{
+  "$schema": "https://anthropic.com/claude-code/marketplace.schema.json",
+  "name": "ts-plugins",
+  "description": "Claude Code plugins collection by Thibault SAVENKOFF.",
+  "owner": {
+    "name": "Thibault SAVENKOFF"
+  },
+  "plugins": [
+    {
+      "name": "git-sync",
+      "description": "Auto-pull on session start, auto-commit + push on session stop.",
+      "source": "./plugins/git-sync",
+      "category": "productivity"
+    },
+    {
+      "name": "claude-model-advisor",
+      "description": "Automatically recommends the optimal Claude model (Haiku 4.5, Sonnet 5, Opus 5) and reasoning effort level (Low to Ultracode).",
+      "source": "./plugins/claude-model-advisor",
+      "category": "productivity"
+    }
+  ]
+}
