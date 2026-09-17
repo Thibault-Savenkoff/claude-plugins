@@ -15,6 +15,12 @@ Add this marketplace directly inside your Claude Code session:
 /plugin marketplace add Thibault-Savenkoff/claude-plugins
 ```
 
+Or outside:
+
+```text
+claude plugin marketplace add Thibault-Savenkoff/claude-plugins
+```
+
 Once added, you can install any of the plugins below with a single command.
 
 ---
