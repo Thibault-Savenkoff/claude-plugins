@@ -9,10 +9,11 @@ Current jev-guard settings:
 - API key: !`[ -n "$TYPESAFE_API_KEY" ] && echo "set" || echo "MISSING -- jev-guard does nothing"`
 - mode: !`git config --get jev-guard.mode || echo "warn (default)"`
 - warn threshold: !`git config --get jev-guard.warnThreshold || echo "0.60 (default)"`
-- block threshold: !`git config --get jev-guard.blockThreshold || echo "0.90 (default)"`
+- block threshold: !`git config --get jev-guard.blockThreshold || echo "0.70 (default)"`
 - artifact confidence: !`git config --get jev-guard.artifactConfidence || echo "0.80 (default)"`
 - max added text sent: !`git config --get jev-guard.maxKb || echo "64 KB (default)"`
 - never sent: !`git config --get-all jev-guard.exclude || echo "(only gitignored files)"`
+- gitleaks: !`command -v gitleaks >/dev/null 2>&1 && echo "installed" || echo "NOT INSTALLED -- strongly recommended"`
 - git-sync hook: !`git config --get git-sync.preCheckpoint || echo "(not wired yet -- happens on the next file Claude writes)"`
 
 The user asked: $ARGUMENTS
@@ -38,6 +39,12 @@ Tell them when relevant:
 - **strict** makes Claude remove a flagged secret before going on, and makes
   git-sync hold back a checkpoint that contains one. A false positive then
   costs a checkpoint, which is why `warn` is the default.
-- The thresholds are guesses until calibrated on real diffs.
+- **If gitleaks is not installed, say so first and recommend installing it**
+  (<https://github.com/gitleaks/gitleaks#installing>). It runs locally, before
+  any API call, and catches known key formats deterministically -- including
+  ones hidden behind a comment that argues they are fake, which Jev alone can
+  be talked out of.
+- The secret thresholds were measured on ~100 generated cases (README,
+  "Calibration"); the artifact threshold is still a guess.
 
 Keep the answer short. Confirm what changed in one line.

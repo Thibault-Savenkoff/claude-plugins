@@ -67,7 +67,7 @@ decide() {
 git config jev-guard.mode strict
 git config jev-guard.blockThreshold 0,9; git config jev-guard.warnThreshold 0,3
 assert_eq pass "$(decide 0.5)" "0.5, warn threshold back to 0.60"
-assert_eq block "$(decide 0.95)" "0.95, block threshold back to 0.90"
+assert_eq block "$(decide 0.95)" "0.95, block threshold back to 0.70"
 git config jev-guard.blockThreshold 1.5
 assert_eq block "$(decide 0.95)" "1.5 is out of range"
 git config jev-guard.blockThreshold 0.5

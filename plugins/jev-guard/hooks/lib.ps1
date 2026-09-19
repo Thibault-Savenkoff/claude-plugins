@@ -106,7 +106,7 @@ function Jg-Prob([string]$Name, [string]$Default) {
 function Jg-Decide([string]$P, [string]$Kind, [string]$Conf) {
   $d = { param($s) [double]::Parse($s, $Inv) }
   $p = & $d $P
-  if ($p -ge (Jg-Prob "blockThreshold" "0.90")) { if ((Jg-Mode) -eq "strict") { return "block" } else { return "warn" } }
+  if ($p -ge (Jg-Prob "blockThreshold" "0.70")) { if ((Jg-Mode) -eq "strict") { return "block" } else { return "warn" } }
   if ($p -ge (Jg-Prob "warnThreshold" "0.60")) { return "warn" }
   if ($Kind -eq "artifact" -and (& $d $Conf) -ge (Jg-Prob "artifactConfidence" "0.80")) { return "artifact" }
   return "pass"

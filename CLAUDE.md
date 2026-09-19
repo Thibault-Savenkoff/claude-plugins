@@ -9,15 +9,15 @@ _Updated 2026-09-19._
 - Why not a jev-guard Stop hook: Claude Code runs plugin Stop hooks in parallel, so it cannot gate
   git-sync's push; the secret would already be on the remote. Touching git-sync was accepted by the user.
 - preCheckpoint contract: exit 75 vetoes the push, anything else lets it through. Not 2: dash/busybox `sh` exit 2 on a missing script, which bricked git-sync after a jev-guard update/uninstall. git-sync passes `GS_DEADLINE` so the scan leaves time to push.
-- Default mode stays `warn`: thresholds (0.60 / 0.90) are uncalibrated guesses; revisit `strict` default after calibration.
+- Secret thresholds measured with `plugins/jev-guard/tests/calibrate.sh` (real API, 49 generated cases x2): warn 0.60, block 0.70, 24/24 caught, 0 false alarms. Default mode still `warn` (user has not decided on `strict` default).
+- The `secret` question wording matters more than thresholds: v1 let "this is a fake secret" comments pull real keys to ~0.53; v2 says such comments do not change the answer (-> >= 0.76). Rerun calibrate.sh after any questions.json change.
 - Each user brings their own `TYPESAFE_API_KEY`; without it the plugin is inert.
 - All text in the repo is English, no exceptions (user rule) — except quoted legacy identifiers like `## État courant` in git-sync's upgrade notes.
 - No test framework (no bats/Pester): plain sh test scripts, run against both sh and pwsh hooks, no network.
 
 ### In flight
-- `feat/jev-guard` pushed (signed commits). No PR opened, not merged: the user reviews the diff from a local machine first.
-- Not done: spec §8 adversarial test and §9 calibration (need a real key); `skills/review/SKILL.md` skipped;
-  PowerShell hooks tested with pwsh 7 on Linux only, never on real Windows / PowerShell 5.1.
+- `feat/jev-guard-calibration` (v0.2.0: new question, thresholds, gitleaks warning), pushed, awaiting PR/merge.
+- Not done: test on real Windows / PowerShell 5.1; `artifactConfidence` (0.80) still uncalibrated.
 
 ### Traps
 - awk `gsub` backslash handling differs between awks (busybox left `"` unescaped) — JSON escaping uses tr/sed.

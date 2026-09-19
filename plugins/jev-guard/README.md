@@ -20,9 +20,11 @@ one off the machine. The judgment comes from the
 - **`/jev-guard:scan`** runs that scan on demand; **`/jev-guard:config`** shows
   and changes the settings.
 
-If [gitleaks](https://github.com/gitleaks/gitleaks) is installed it runs first;
-a hit there skips the API call. Jev reads the diff as data it can be argued
-with, so it should not be your only barrier.
+**Install [gitleaks](https://github.com/gitleaks/gitleaks#installing) too.**
+jev-guard runs it first when it is present: it is local, free, and catches known
+key formats with certainty. Jev reads the diff as data it can be argued with
+(see Calibration), so it should not be your only barrier. `/jev-guard:config`
+tells you when gitleaks is missing.
 
 ## Setup
 
@@ -61,12 +63,39 @@ All in git config, per repo (or `--global`):
 |---|---|---|
 | `jev-guard.mode` | `warn` | `off`, `warn`, `strict` |
 | `jev-guard.warnThreshold` | `0.60` | probability of a secret that triggers a warning |
-| `jev-guard.blockThreshold` | `0.90` | probability that blocks, in `strict` |
+| `jev-guard.blockThreshold` | `0.70` | probability that blocks, in `strict` |
 | `jev-guard.artifactConfidence` | `0.80` | confidence needed for the "generated file" hint |
 | `jev-guard.maxKb` | `64` | larger additions are not sent |
 | `jev-guard.exclude` | | glob, repeatable; matching files are never sent |
 
-The thresholds are starting guesses, not calibrated values.
+The secret thresholds are measured (below); `artifactConfidence` is still a guess.
+
+## Calibration
+
+`tests/calibrate.sh` sends 49 generated cases to the real API (it needs a key
+and is never run by the test suite): 24 secrets in realistic formats, 4 of them
+next to a comment arguing they are fake, and 25 look-alikes that are not
+secrets (placeholders, environment variables, public keys, hashes, UUIDs,
+`.env.example`, code that only mentions passwords). Every value is random.
+
+Two runs with `jev-1.13`, September 2026:
+
+| | Lowest secret | Highest non-secret |
+|---|---|---|
+| Run 1 | 0.77 (adversarial comment) | 0.48 (`password: 'test'` in a test) |
+| Run 2 | 0.76 (adversarial comment) | 0.50 (same) |
+
+At `0.60` (warn) and `0.70` (block), both runs caught 24/24 secrets with 0
+false alarms. 0.90, the first guess, would have blocked only 14 of 24.
+
+The wording of the question mattered more than the thresholds. The first
+version put every realistic secret between 0.60 and 0.78, and the adversarial
+comments pulled theirs down to 0.53. Saying explicitly that comments claiming
+a value is fake do not change the answer moved them to 0.76 or more.
+
+Limits: 98 answers over cases one person wrote, in English, in common
+formats. Rerun the script after changing `questions.json` or when the model
+changes.
 
 ## Limits
 
