@@ -16,7 +16,8 @@ _Updated 2026-09-19._
 - No test framework (no bats/Pester): plain sh test scripts, run against both sh and pwsh hooks, no network.
 
 ### In flight
-- On main and installed on srv-tsa and Windows: jev-guard 0.2.1, git-sync 2.2.0. Nothing pending on a branch.
+- On main and installed on srv-tsa and Windows: jev-guard 0.2.1, git-sync 2.2.0.
+- Branch `fix/windows-tests` (0.2.2): Windows-safe fixture URLs in tests + faster scan (jg_load once per run, 4 files in parallel). Awaiting a Windows timing run, then merge.
 - Verified live on Windows 11 / PS 5.1 (2026-09-19): edit-time block, checkpoint veto, and clean checkpoint push all work.
 - Not done: macOS (BSD awk); the .ps1 hooks on a Windows without Git Bash; decide whether `strict` becomes the default.
 - Verified live (2026-09-19): hooks fire in a real headless Claude Code session (PostToolUse block reaches
@@ -29,4 +30,5 @@ _Updated 2026-09-19._
   it now runs in a child PowerShell with `; exit $LASTEXITCODE` to keep the native exit code.
 - pre-checkpoint scripts must locate themselves from `$0`/`$PSScriptRoot`: git-sync calls them with its own `CLAUDE_PLUGIN_ROOT` set.
 - Windows: Claude Code passes `C:\...` paths, git returns `C:/...`; never derive repo-relative paths by string stripping, use `git rev-parse --show-prefix`. On Windows with Git Bash, Claude Code runs the sh hooks, not the .ps1 ones (confirmed by the wired preCheckpoint command): the .ps1 path only matters without Git Bash.
+- Git Bash on Windows: ~2.5 s per scanned file before 0.2.2 (process start-up); every fork counts. curl there cannot read file:///c/... URLs, only file:///C:/... (tests use furl()). The user's terminal injects an invisible U+0083 before the first pasted line: give them a sacrificial `true` first line.
 - `lib.sh` reads `JEV_GUARD_API_URL` once at source time; tests that change it afterwards must set `JG_URL`.

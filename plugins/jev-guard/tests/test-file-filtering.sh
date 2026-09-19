@@ -3,7 +3,7 @@
 # any call at all would leave a line in error.log.
 . "$(dirname "$0")/lib.sh"
 new_world
-export JEV_GUARD_API_URL="file://$WORLD/no-such-fixture"
+export JEV_GUARD_API_URL=$(furl "$WORLD/no-such-fixture")
 calls() { [ -s .git/jev-guard/error.log ] && echo yes || echo no; }
 
 it "skips gitignored files"

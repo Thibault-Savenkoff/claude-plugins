@@ -20,7 +20,7 @@ assert_eq 'naïve' "$(printf 'naïve' | jg_esc)" "escaped"
 # answer <json> -- feed one API response to jg_ask, print its parse.
 answer() {
   printf '%s' "$1" > "$WORLD/r.json"
-  JG_URL="file://$WORLD/r.json"
+  JG_URL=$(furl "$WORLD/r.json")
   rm -rf .git/jev-guard/cache
   jg_ask f.txt "$(date +%N)"
 }

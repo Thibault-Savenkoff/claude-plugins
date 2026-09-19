@@ -25,13 +25,26 @@ cd "$(git rev-parse --show-toplevel)" || exit 0
 # stop starting scans once one more (gitleaks + a 2 s call) could overrun the
 # deadline git-sync hands us. Run by hand, allow 8 s.
 DEADLINE=${GS_DEADLINE:-$(( $(date +%s) + 8 ))}
-OUT=$( { if [ -n "${GS_TREE:-}" ]; then git -c core.quotePath=false diff --name-only --no-renames "$GS_BASE" "$GS_TREE"
-         else git -c core.quotePath=false diff --name-only --no-renames HEAD
-              git -c core.quotePath=false ls-files -o --exclude-standard; fi; } |
-       while IFS= read -r f; do
-         if [ $(( $(date +%s) + 3 )) -gt "$DEADLINE" ]; then printf 'skipped\t%s\tnot scanned, time budget\n' "$f"; continue; fi
-         jg_scan "$GS_BASE" "${GS_TREE:-}" "$f"
-       done)
+TMP=$(mktemp -d); trap 'rm -rf "$TMP"' EXIT
+{ if [ -n "${GS_TREE:-}" ]; then git -c core.quotePath=false diff --name-only --no-renames "$GS_BASE" "$GS_TREE"
+  else git -c core.quotePath=false diff --name-only --no-renames HEAD
+       git -c core.quotePath=false ls-files -o --exclude-standard; fi; } > "$TMP/files"
+
+# Four files at a time: under Git Bash each scan is mostly process start-up,
+# which runs in parallel well; one after another, only two or three files fit
+# in the budget. Each scan writes its own numbered file, read back in order.
+# ponytail: fixed batches of 4, a job pool if one slow file stalls the rest.
+i=0; running=0; late=
+while IFS= read -r f; do
+  i=$((i + 1)); o="$TMP/$(printf '%06d' "$i")"
+  if [ "$running" -eq 0 ] && [ -z "$late" ] && [ $(( $(date +%s) + 3 )) -gt "$DEADLINE" ]; then late=1; fi
+  if [ -n "$late" ]; then printf 'skipped\t%s\tnot scanned, time budget\n' "$f" > "$o"; continue; fi
+  jg_scan "$GS_BASE" "${GS_TREE:-}" "$f" > "$o" &
+  running=$((running + 1))
+  if [ "$running" -ge 4 ]; then wait; running=0; fi
+done < "$TMP/files"
+wait
+OUT=$(cat "$TMP"/0* 2>/dev/null)
 [ -n "$OUT" ] || exit 0
 
 # Anchored at line start: a path ending in "block" must not match.
