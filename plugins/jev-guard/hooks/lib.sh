@@ -30,7 +30,7 @@ jg_active() {
 
 jg_dir() { _d="$(git rev-parse --git-dir)/jev-guard"; mkdir -p "$_d/cache"; printf '%s' "$_d"; }
 
-jg_log() { printf '%s %s\n' "$(date '+%Y-%m-%dT%H:%M:%S')" "$1" >> "$(jg_dir)/error.log"; }
+jg_log() { printf '%s %s\n' "$(date '+%Y-%m-%dT%H:%M:%S')" "$(printf '%s' "$1" | tr '\n' ' ')" >> "$(jg_dir)/error.log"; }
 
 # jg_excluded <path> -- files that are never sent to the API: untracked
 # gitignored ones (they never travel) and the user's jev-guard.exclude globs.
@@ -88,19 +88,36 @@ jg_ask() {
   if [ -n "$(find "$_down" -mmin -1 2>/dev/null)" ]; then return 1; fi
   _body=$(printf '{"model":"jev-latest","state":{"path":"%s","added_lines":"%s"},"questions":%s}' \
             "$(printf '%s' "$1" | jg_esc)" "$(printf '%s' "$2" | jg_esc)" "$(cat "${CLAUDE_PLUGIN_ROOT}/hooks/questions.json")")
-  # One try, two seconds: a hook is no place for retries.
-  if ! _r=$(printf '%s' "$_body" | curl -sS --fail --max-time 2 \
+  # One try, two seconds: a hook is no place for retries. Only a network error
+  # or a 5xx means the service is down; a 4xx is about this one request (odd
+  # encoding, too big), and must not switch the guard off for other files.
+  if ! _r=$(printf '%s' "$_body" | curl -sS --max-time 2 -w '\n%{http_code}' \
               -H "Authorization: Bearer $TYPESAFE_API_KEY" \
               -H "Content-Type: application/json" \
               --data-binary @- "$JG_URL" 2>&1); then
     jg_log "api: $_r"; : > "$_down"; return 1
   fi
-  _r=$(printf '%s' "$_r" | tr -d '\n\r\t ')
+  _code=$(printf '%s' "$_r" | tail -n 1)
+  _r=$(printf '%s' "$_r" | sed '$d' | tr -d '\n\r\t ')
+  case "$_code" in
+    5*) jg_log "api: HTTP $_code $_r"; : > "$_down"; return 1 ;;
+    4*) jg_log "api: HTTP $_code $_r"; return 1 ;;
+  esac
   _n=$(printf '%s' "$_r" | sed -n 's/.*"secret":{[^}]*"noul":\([0-9.eE+-]*\).*/\1/p')
   _k=$(printf '%s' "$_r" | sed -n 's/.*"choice":"\([a-z]*\)".*/\1/p')
   _f=$(printf '%s' "$_r" | sed -n 's/.*"confidence":\([0-9.eE+-]*\).*/\1/p')
-  if [ -z "$_n" ]; then jg_log "unexpected response: $_r"; : > "$_down"; return 1; fi
+  if [ -z "$_n" ]; then jg_log "unexpected response: $_r"; return 1; fi
   printf '%s %s %s\n' "$_n" "${_k:-unknown}" "${_f:-0}" | tee "$_c"
+}
+
+# jg_prob <name> <default> -- a threshold, or the default unless it is a plain
+# number in [0, 1]. "0,9" must not read as 0 (block everything) or 9 (never).
+jg_prob() {
+  _v=$(jg_config "$1" "$2")
+  case "$_v" in 0 | 1 | 0.[0-9]* | 1.0*) ;; *) _v=$2 ;; esac
+  case "$_v" in *[!0-9.]* | *.*.*) _v=$2 ;; esac
+  case "$_v" in 1.*[1-9]*) _v=$2 ;; esac
+  printf '%s' "$_v"
 }
 
 # jg_decide <noul> <kind> <confidence> -- block | warn | artifact | pass.
@@ -108,8 +125,8 @@ jg_ask() {
 # for a Choice. The defaults are guesses until calibrated (spec section 9).
 jg_decide() {
   awk -v p="$1" -v k="$2" -v c="$3" -v m="$(jg_mode)" \
-      -v b="$(jg_config blockThreshold 0.90)" -v w="$(jg_config warnThreshold 0.60)" \
-      -v a="$(jg_config artifactConfidence 0.80)" 'BEGIN {
+      -v b="$(jg_prob blockThreshold 0.90)" -v w="$(jg_prob warnThreshold 0.60)" \
+      -v a="$(jg_prob artifactConfidence 0.80)" 'BEGIN {
     if (p + 0 >= b + 0) print (m == "strict" ? "block" : "warn")
     else if (p + 0 >= w + 0) print "warn"
     else if (k == "artifact" && c + 0 >= a + 0) print "artifact"
@@ -147,7 +164,9 @@ jg_scan() {
 # the version running now: an update moves CLAUDE_PLUGIN_ROOT, and a stale path
 # would silently disarm the guard. Leaves any other tool's command alone.
 jg_wire() {
-  _want="sh \"${CLAUDE_PLUGIN_ROOT}/hooks/pre-checkpoint.sh\""
+  # The existence test turns a stale path (after an uninstall) into a no-op.
+  _s="${CLAUDE_PLUGIN_ROOT}/hooks/pre-checkpoint.sh"
+  _want="[ ! -f \"$_s\" ] || sh \"$_s\""
   _have=$(git config --get git-sync.preCheckpoint 2>/dev/null || true)
   case "$_have" in "" | *jev-guard*) ;; *) return 0 ;; esac
   [ "$_have" = "$_want" ] || git config git-sync.preCheckpoint "$_want"

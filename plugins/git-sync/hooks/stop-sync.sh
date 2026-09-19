@@ -10,6 +10,7 @@
 # That is the whole point of 2.0: the sync stops borrowing the project's
 # history as a transport and stops leaving "WIP: auto-sync" behind in it.
 set -e
+GS_START=$(date +%s)
 
 . "${CLAUDE_PLUGIN_ROOT}/hooks/lib.sh"
 

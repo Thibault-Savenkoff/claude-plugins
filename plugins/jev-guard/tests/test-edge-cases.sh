@@ -45,4 +45,32 @@ api down; printf 'a\n' > one.txt; printf 'b\n' > two.txt; printf 'c\n' > three.t
 scan >/dev/null
 assert_eq 1 "$(grep -c . .git/jev-guard/error.log)" "API attempts logged"
 
+it "a malformed answer does not switch the guard off for other files"
+rm -f .git/jev-guard/error.log; api garbage
+scan >/dev/null
+[ ! -f .git/jev-guard/api-down ] || fail "api-down marker set by a bad answer"
+assert_eq 3 "$(grep -c . .git/jev-guard/error.log)" "each file still tried"
+
+it "past git-sync's deadline, files are listed as not scanned"
+api secret
+out=$(GS_DEADLINE=$(( $(date +%s) - 1 )) scan)
+assert_contains "$out" "not scanned" "scan output"
+rm one.txt two.txt three.txt
+
+it "a threshold that is not a number in [0, 1] falls back to the default"
+# decide <p> -- jg_decide / Jg-Decide, whichever implementation is under test.
+decide() {
+  if [ "${GS_SHELL:-sh}" = pwsh ]; then
+    pwsh -NoProfile -Command ". '$PLUGIN_ROOT/hooks/lib.ps1'; Jg-Decide '$1' source 0.9"
+  else (. "$PLUGIN_ROOT/hooks/lib.sh"; jg_decide "$1" source 0.9); fi
+}
+git config jev-guard.mode strict
+git config jev-guard.blockThreshold 0,9; git config jev-guard.warnThreshold 0,3
+assert_eq pass "$(decide 0.5)" "0.5, warn threshold back to 0.60"
+assert_eq block "$(decide 0.95)" "0.95, block threshold back to 0.90"
+git config jev-guard.blockThreshold 1.5
+assert_eq block "$(decide 0.95)" "1.5 is out of range"
+git config jev-guard.blockThreshold 0.5
+assert_eq block "$(decide 0.55)" "a valid threshold still applies"
+
 cleanup_world; exit $FAILURES

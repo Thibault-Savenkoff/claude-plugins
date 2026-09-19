@@ -113,19 +113,19 @@ function Gs-SnapshotTree {
   }
 }
 
-# See lib.sh: run git-sync.preCheckpoint before a push. Exit 2 vetoes it;
+# See lib.sh: run git-sync.preCheckpoint before a push. Exit 75 vetoes it;
 # anything else, a crash included, lets it through.
 function Gs-PreCheckpoint([string]$Base, [string]$Tree) {
   $cmd = Gs-Config "preCheckpoint"
   if (-not $cmd) { return @{ Ok = $true; Out = "" } }
-  $env:GS_BASE = $Base; $env:GS_TREE = $Tree
+  $env:GS_BASE = $Base; $env:GS_TREE = $Tree; $env:GS_DEADLINE = $script:GsStart + 9
   $global:LASTEXITCODE = 0
   # A child PowerShell, not an in-process scriptblock: an `exit` in the command
   # would otherwise end this hook, and the checkpoint with it.
   try { $out = (& (Get-Process -Id $PID).Path -NoProfile -Command "$cmd; exit `$LASTEXITCODE" 2>$null) -join "`n" } catch { $out = "" }
   $rc = $LASTEXITCODE
-  Remove-Item Env:GS_BASE, Env:GS_TREE -ErrorAction SilentlyContinue
-  return @{ Ok = ($rc -ne 2); Out = $out.Trim() }
+  Remove-Item Env:GS_BASE, Env:GS_TREE, Env:GS_DEADLINE -ErrorAction SilentlyContinue
+  return @{ Ok = ($rc -ne 75); Out = $out.Trim() }
 }
 
 function Gs-WorktreeTree { (Gs-SnapshotTree).Tree }

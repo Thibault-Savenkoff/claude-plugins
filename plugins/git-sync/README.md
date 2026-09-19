@@ -78,7 +78,7 @@ repo's `.git/config`, so it is per-repo, local to your machine, never committed.
 | `git-sync.notes` | on in checkpoint mode | Nudge Claude to refresh `CLAUDE.md` on session stop |
 | `git-sync.archive` | `false` | `true` archives session transcripts locally |
 | `git-sync.identity` | `bot` | Commit mode only: `self` commits under your own name |
-| `git-sync.preCheckpoint` | unset | Checkpoint mode only: a command run just before each push, with `GS_BASE` and `GS_TREE` set. Its output is shown; exit 2 holds the checkpoint back, any other exit lets it through. Set automatically by [jev-guard](../jev-guard) |
+| `git-sync.preCheckpoint` | unset | Checkpoint mode only: a command run just before each push, with `GS_BASE` and `GS_TREE` set. Its output is shown; exit 75 holds the checkpoint back (not 2, which `sh` returns for a missing script), and `GS_DEADLINE` gives the epoch second to finish by, any other exit lets it through. Set automatically by [jev-guard](../jev-guard) |
 
 ```sh
 # Skip git-sync for one session only (not a stored setting)

@@ -1,5 +1,6 @@
 # Push the work tree to a checkpoint branch on session stop.
 # See hooks/stop-sync.sh for why this never runs `git commit`.
+$GsStart = [DateTimeOffset]::UtcNow.ToUnixTimeSeconds()
 . (Join-Path $env:CLAUDE_PLUGIN_ROOT "hooks/lib.ps1")
 
 if (-not (Gs-Enabled)) { exit 0 }
