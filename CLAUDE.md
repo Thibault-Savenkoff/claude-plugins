@@ -8,7 +8,7 @@ _Updated 2026-09-19._
   (last check before push, also catches files written via Bash).
 - Why not a jev-guard Stop hook: Claude Code runs plugin Stop hooks in parallel, so it cannot gate
   git-sync's push; the secret would already be on the remote. Touching git-sync was accepted by the user.
-- preCheckpoint contract: exit 2 vetoes the push, anything else (crash, missing command) lets it through.
+- preCheckpoint contract: exit 75 vetoes the push, anything else lets it through. Not 2: dash/busybox `sh` exit 2 on a missing script, which bricked git-sync after a jev-guard update/uninstall. git-sync passes `GS_DEADLINE` so the scan leaves time to push.
 - Default mode stays `warn`: thresholds (0.60 / 0.90) are uncalibrated guesses; revisit `strict` default after calibration.
 - Each user brings their own `TYPESAFE_API_KEY`; without it the plugin is inert.
 - All text in the repo is English, no exceptions (user rule) — except quoted legacy identifiers like `## État courant` in git-sync's upgrade notes.
