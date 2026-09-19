@@ -16,7 +16,7 @@ _Updated 2026-09-19._
 - No test framework (no bats/Pester): plain sh test scripts, run against both sh and pwsh hooks, no network.
 
 ### In flight
-- On main: jev-guard 0.2.0, git-sync 2.2.0. Branch `fix/windows-paths` (0.2.1) pushed, awaiting merge.
+- On main and installed on srv-tsa and Windows: jev-guard 0.2.1, git-sync 2.2.0. Nothing pending on a branch.
 - Verified live on Windows 11 / PS 5.1 (2026-09-19): edit-time block, checkpoint veto, and clean checkpoint push all work.
 - Not done: macOS (BSD awk); the .ps1 hooks on a Windows without Git Bash; decide whether `strict` becomes the default.
 - Verified live (2026-09-19): hooks fire in a real headless Claude Code session (PostToolUse block reaches
