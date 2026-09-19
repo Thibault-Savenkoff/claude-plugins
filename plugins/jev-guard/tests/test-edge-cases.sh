@@ -40,10 +40,13 @@ printf '#!/bin/sh\nexit 42\n' > "$WORLD/bin/gitleaks"
 assert_contains "$(PATH="$WORLD/bin:$PATH" scan)" "gitleaks" "scan output"
 git checkout -q app.py
 
-it "API down: one timeout, not one per file"
-rm -f .git/jev-guard/error.log; api down; printf 'a\n' > one.txt; printf 'b\n' > two.txt; printf 'c\n' > three.txt
+it "API down: after one failed scan, the next one does not call it again"
+api down; printf 'a\n' > one.txt; printf 'b\n' > two.txt; printf 'c\n' > three.txt
 scan >/dev/null
-assert_eq 1 "$(grep -c . .git/jev-guard/error.log)" "API attempts logged"
+[ -s .git/jev-guard/error.log ] || fail "first scan did not reach the API"
+rm -f .git/jev-guard/error.log
+scan >/dev/null
+[ ! -s .git/jev-guard/error.log ] || fail "the API was called again within the minute"
 
 it "a malformed answer does not switch the guard off for other files"
 rm -f .git/jev-guard/error.log; api garbage
