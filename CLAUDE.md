@@ -3,7 +3,7 @@
 _Updated 2026-09-19._
 
 ### Decisions
-- jev-guard (branch `feat/jev-guard`, spec in `/root/jev-guard-spec.md` on srv-tsa) hooks two places:
+- jev-guard (spec in `/root/jev-guard-spec.md` on srv-tsa) hooks two places:
   PostToolUse on Edit|Write (warns Claude at write time) and git-sync's new `git-sync.preCheckpoint`
   (last check before push, also catches files written via Bash).
 - Why not a jev-guard Stop hook: Claude Code runs plugin Stop hooks in parallel, so it cannot gate
@@ -16,8 +16,9 @@ _Updated 2026-09-19._
 - No test framework (no bats/Pester): plain sh test scripts, run against both sh and pwsh hooks, no network.
 
 ### In flight
-- `feat/jev-guard-calibration` (v0.2.0: new question, thresholds, gitleaks warning), pushed, awaiting PR/merge.
-- Not done: test on real Windows / PowerShell 5.1; `artifactConfidence` (0.80) still uncalibrated.
+- On main: jev-guard 0.2.0, git-sync 2.2.0. Nothing pending on a branch.
+- Not done: test on real Windows / PowerShell 5.1; `artifactConfidence` (0.80) still uncalibrated;
+  decide whether `strict` becomes the default; gitleaks not installed on srv-tsa.
 
 ### Traps
 - awk `gsub` backslash handling differs between awks (busybox left `"` unescaped) — JSON escaping uses tr/sed.
