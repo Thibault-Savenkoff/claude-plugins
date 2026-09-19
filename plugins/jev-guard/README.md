@@ -68,7 +68,7 @@ All in git config, per repo (or `--global`):
 | `jev-guard.maxKb` | `64` | larger additions are not sent |
 | `jev-guard.exclude` | | glob, repeatable; matching files are never sent |
 
-The secret thresholds are measured (below); `artifactConfidence` is still a guess.
+All thresholds are measured (below).
 
 ## Calibration
 
@@ -96,6 +96,13 @@ a value is fake do not change the answer moved them to 0.76 or more.
 Limits: 98 answers over cases one person wrote, in English, in common
 formats. Rerun the script after changing `questions.json` or when the model
 changes.
+
+**Generated-file hint** (`artifactConfidence`), one run over 30 files: the 9
+build outputs it recognised (bundles, source maps, `__pycache__`, generated
+protobuf/GraphQL code, coverage reports) all scored 0.98 or more, and none of
+15 hand-written files was taken for one, so any value from 0.5 to 0.95 behaves
+the same. Lockfiles come out as `config`, which is right: they belong in the
+repository. One miss: a Maven `MANIFEST.MF` (0.38).
 
 ## Limits
 

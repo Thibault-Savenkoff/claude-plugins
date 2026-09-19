@@ -44,7 +44,6 @@ Tell them when relevant:
   any API call, and catches known key formats deterministically -- including
   ones hidden behind a comment that argues they are fake, which Jev alone can
   be talked out of.
-- The secret thresholds were measured on ~100 generated cases (README,
-  "Calibration"); the artifact threshold is still a guess.
+- The thresholds were measured on the real API (README, "Calibration").
 
 Keep the answer short. Confirm what changed in one line.

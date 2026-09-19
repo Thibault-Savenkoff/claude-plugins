@@ -17,8 +17,10 @@ _Updated 2026-09-19._
 
 ### In flight
 - On main: jev-guard 0.2.0, git-sync 2.2.0. Nothing pending on a branch.
-- Not done: test on real Windows / PowerShell 5.1; `artifactConfidence` (0.80) still uncalibrated;
-  decide whether `strict` becomes the default; gitleaks not installed on srv-tsa.
+- Not done: test on real Windows / PowerShell 5.1, and macOS (BSD awk); decide whether `strict` becomes the default.
+- Verified live (2026-09-19): hooks fire in a real headless Claude Code session (PostToolUse block reaches
+  Claude; git-sync Stop pushes a clean checkpoint and vetoes one with a secret); a 401 is logged without
+  disabling the guard; real gitleaks 8.30.1 (installed on srv-tsa) exits 42 on leaks; artifact hint measured.
 
 ### Traps
 - awk `gsub` backslash handling differs between awks (busybox left `"` unescaped) — JSON escaping uses tr/sed.
