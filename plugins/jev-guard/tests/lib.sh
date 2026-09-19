@@ -13,10 +13,18 @@ assert_eq() { [ "$1" = "$2" ] || fail "${3:-value}: expected [$1], got [$2]"; }
 assert_contains() { case "$1" in *"$2"*) ;; *) fail "${3:-output}: [$2] missing from [$1]" ;; esac; }
 it() { CURRENT="$1"; printf '  - %s\n' "$1"; }
 
+# furl <path> -- a file:// URL curl can read. Git Bash paths (/c/Users/...)
+# mean nothing to curl on Windows; `pwd -W` gives C:/Users/... there, and
+# fails harmlessly everywhere else.
+furl() {
+  _d=$(cd "$(dirname "$1")" && { pwd -W 2>/dev/null || pwd; })
+  printf 'file:///%s/%s' "${_d#/}" "$(basename "$1")"
+}
+
 # api <fixture|down> -- what the next calls will get back.
 api() {
   if [ "$1" = down ]; then export JEV_GUARD_API_URL=http://127.0.0.1:9
-  else export JEV_GUARD_API_URL="file://$PLUGIN_ROOT/tests/fixtures/$1.json"; fi
+  else export JEV_GUARD_API_URL="$(furl "$PLUGIN_ROOT/tests/fixtures/$1.json")"; fi
   rm -rf "$A/.git/jev-guard/cache" "$A/.git/jev-guard/api-down"
 }
 

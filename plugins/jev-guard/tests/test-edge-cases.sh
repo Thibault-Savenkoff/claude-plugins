@@ -41,7 +41,7 @@ assert_contains "$(PATH="$WORLD/bin:$PATH" scan)" "gitleaks" "scan output"
 git checkout -q app.py
 
 it "API down: one timeout, not one per file"
-api down; printf 'a\n' > one.txt; printf 'b\n' > two.txt; printf 'c\n' > three.txt
+rm -f .git/jev-guard/error.log; api down; printf 'a\n' > one.txt; printf 'b\n' > two.txt; printf 'c\n' > three.txt
 scan >/dev/null
 assert_eq 1 "$(grep -c . .git/jev-guard/error.log)" "API attempts logged"
 
