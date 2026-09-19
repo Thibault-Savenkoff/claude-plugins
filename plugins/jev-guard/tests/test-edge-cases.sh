@@ -73,4 +73,28 @@ assert_eq block "$(decide 0.95)" "1.5 is out of range"
 git config jev-guard.blockThreshold 0.5
 assert_eq block "$(decide 0.55)" "a valid threshold still applies"
 
+it "an addition over maxKb is still checked by gitleaks, and reported"
+git config --unset jev-guard.blockThreshold; git config --unset jev-guard.warnThreshold
+git config jev-guard.maxKb 1
+awk 'BEGIN { for (i = 0; i < 200; i++) print "line " i }' > big.txt
+assert_contains "$(PATH="$WORLD/bin:$PATH" scan)" "gitleaks" "with gitleaks"
+assert_contains "$(PATH="/nonexistent:$PATH" scan | grep big.txt)" "not sent" "without gitleaks"
+rm "$WORLD/bin/gitleaks" big.txt
+
+it "a malformed maxKb falls back to the default, and does not stop the scan"
+api secret; git config jev-guard.maxKb 64k
+printf 'KEY=sk-live-abc\n' > conf.ini
+assert_contains "$(scan)" "conf.ini" "scan output"
+git config --unset jev-guard.maxKb
+
+it "the wiring survives a plugin path with quotes, \$ and an apostrophe"
+ODD="$WORLD/it's \$odd \"dir\"/jev-guard"
+mkdir -p "$(dirname "$ODD")"; cp -R "$PLUGIN_ROOT" "$ODD"
+git config --unset git-sync.preCheckpoint
+CLAUDE_PLUGIN_ROOT="$ODD" edit conf.ini >/dev/null
+reset; out=$(git_sync_stop)
+assert_contains "$out" "not pushed" "stop message"
+assert_eq "" "$(pushed)" "remote checkpoint"
+rm conf.ini
+
 cleanup_world; exit $FAILURES

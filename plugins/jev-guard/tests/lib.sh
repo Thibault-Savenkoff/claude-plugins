@@ -38,9 +38,9 @@ cleanup_world() { [ -n "${WORLD:-}" ] && rm -rf "$WORLD"; cd "$PLUGIN_ROOT" || e
 edit() {
   _p="{\"tool_name\":\"Write\",\"tool_input\":{\"file_path\":\"$PWD/$1\",\"content\":\"...\"}}"
   if [ "${GS_SHELL:-sh}" = pwsh ]; then
-    printf '%s' "$_p" | pwsh -NoProfile -File "$PLUGIN_ROOT/hooks/post-edit.ps1" 2>&1
+    printf '%s' "$_p" | pwsh -NoProfile -File "$CLAUDE_PLUGIN_ROOT/hooks/post-edit.ps1" 2>&1
   else
-    printf '%s' "$_p" | sh "$PLUGIN_ROOT/hooks/post-edit.sh" 2>&1
+    printf '%s' "$_p" | sh "$CLAUDE_PLUGIN_ROOT/hooks/post-edit.sh" 2>&1
   fi
 }
 

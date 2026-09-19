@@ -117,7 +117,6 @@ function Jg-Scan([string]$Base, [string]$Tree, [string]$Path) {
   if (Jg-Excluded $Path) { return }
   $add = Jg-Added $Base $Tree $Path
   if (-not $add) { return }
-  if ([Text.Encoding]::UTF8.GetByteCount($add) -gt [int](Jg-Config "maxKb" "64") * 1024) { return }
   if (Get-Command gitleaks -ErrorAction SilentlyContinue) {
     $add | gitleaks stdin --no-banner -l error --exit-code 42 *> $null
     if ($LASTEXITCODE -eq 42) {
@@ -125,6 +124,11 @@ function Jg-Scan([string]$Base, [string]$Tree, [string]$Path) {
       return "$v`t$Path`tgitleaks"
     }
   }
+  # See lib.sh: maxKb gates the API call only, and falls back on bad input.
+  $kb = 0
+  if (-not [int]::TryParse((Jg-Config "maxKb" "64"), [ref]$kb) -or $kb -lt 0) { $kb = 64 }
+  $sz = [Text.Encoding]::UTF8.GetByteCount($add)
+  if ($sz -gt $kb * 1024) { return "skipped`t$Path`tnot sent, $([math]::Floor($sz / 1024)) KB added (maxKb $kb)" }
   $a = Jg-Ask $Path $add
   if (-not $a) { return }
   switch (Jg-Decide $a[0] $a[1] $a[2]) {
@@ -138,7 +142,10 @@ function Jg-Scan([string]$Base, [string]$Tree, [string]$Path) {
 function Jg-Wire {
   $exe = (Get-Process -Id $PID).Path
   # See lib.sh: the Test-Path turns a stale path into a no-op.
-  $s = Join-Path $PSScriptRoot "pre-checkpoint.ps1"
+  # Apostrophes doubled for the single quotes: C:\Users\O'Brien must not turn
+  # the command into a syntax error that silently disarms the guard.
+  $s = (Join-Path $PSScriptRoot "pre-checkpoint.ps1").Replace("'", "''")
+  $exe = $exe.Replace("'", "''")
   $want = "if (Test-Path '$s') { & '$exe' -NoProfile -ExecutionPolicy Bypass -File '$s' }"
   $have = (git config --get git-sync.preCheckpoint 2>$null)
   if ($have -and $have -notlike "*jev-guard*") { return }

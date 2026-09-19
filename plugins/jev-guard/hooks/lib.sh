@@ -140,7 +140,6 @@ jg_scan() {
   jg_excluded "$3" && return 0
   _add=$(jg_added "$1" "$2" "$3")
   [ -n "$_add" ] || return 0
-  [ "$(printf '%s' "$_add" | wc -c)" -le $(( $(jg_config maxKb 64) * 1024 )) ] || return 0
   # The deterministic scanner goes first: a known pattern needs no model, and
   # Jev reads the diff as data it can be argued with (spec section 5).
   # Only exit 42 means a leak: gitleaks also exits 1 on its own errors (an old
@@ -148,6 +147,15 @@ jg_scan() {
   if command -v gitleaks >/dev/null 2>&1 &&
      { printf '%s\n' "$_add" | gitleaks stdin --no-banner -l error --exit-code 42 >/dev/null 2>&1; [ $? -eq 42 ]; }; then
     printf '%s\t%s\t%s\n' "$([ "$(jg_mode)" = strict ] && echo block || echo warn)" "$3" "gitleaks"
+    return 0
+  fi
+  # maxKb limits what leaves the machine, so it gates the API call only, after
+  # the local gitleaks pass. Not a whole number: the default, never a crash.
+  _kb=$(jg_config maxKb 64)
+  case "$_kb" in "" | *[!0-9]*) _kb=64 ;; esac
+  _sz=$(printf '%s' "$_add" | wc -c)
+  if [ "$_sz" -gt $(( _kb * 1024 )) ]; then
+    printf 'skipped\t%s\tnot sent, %s KB added (maxKb %s)\n' "$3" $(( _sz / 1024 )) "$_kb"
     return 0
   fi
   _ans=$(jg_ask "$3" "$_add") || return 0
@@ -165,7 +173,9 @@ jg_scan() {
 # would silently disarm the guard. Leaves any other tool's command alone.
 jg_wire() {
   # The existence test turns a stale path (after an uninstall) into a no-op.
-  _s="${CLAUDE_PLUGIN_ROOT}/hooks/pre-checkpoint.sh"
+  # Escaped for the double quotes below: a path with " $ ` or \ in it would
+  # otherwise make the command a syntax error, and silently disarm the guard.
+  _s=$(printf '%s' "${CLAUDE_PLUGIN_ROOT}/hooks/pre-checkpoint.sh" | sed 's/[\\"$`]/\\&/g')
   _want="[ ! -f \"$_s\" ] || sh \"$_s\""
   _have=$(git config --get git-sync.preCheckpoint 2>/dev/null || true)
   case "$_have" in "" | *jev-guard*) ;; *) return 0 ;; esac
