@@ -47,7 +47,11 @@ are not allowed to share. Never sent: gitignored files, files matching a
 
 API down, slow (2 s timeout, no retry), key rejected, or an answer it cannot
 read: nothing is shown, the reason goes to `.git/jev-guard/error.log`, and the
-checkpoint is pushed as usual, even in `strict`. The guard never costs you work.
+checkpoint is pushed as usual, even in `strict`. After a failure the API is
+left alone for a minute, so a dead API costs one timeout, not one per file.
+
+The checkpoint-time scan stops after 8 seconds, to stay inside git-sync's 15 s
+Stop timeout; files it did not reach are listed as not scanned.
 
 ## Settings
 
@@ -68,8 +72,8 @@ The thresholds are starting guesses, not calibrated values.
 
 - Only files written with Edit/Write are checked at write time; the rest are
   caught at checkpoint time, which is later.
-- Checkpoint-time scans are sequential. Many cold files at once could approach
-  git-sync's 15 s Stop timeout.
+- Checkpoint-time scans are sequential, within an 8 s budget: with many new
+  files at once, the last ones may go unscanned (and are reported as such).
 - Files are scanned one request each; batching several files into one request
   costs accuracy, so it is not done.
 

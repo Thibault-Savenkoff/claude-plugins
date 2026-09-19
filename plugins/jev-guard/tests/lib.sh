@@ -17,7 +17,7 @@ it() { CURRENT="$1"; printf '  - %s\n' "$1"; }
 api() {
   if [ "$1" = down ]; then export JEV_GUARD_API_URL=http://127.0.0.1:9
   else export JEV_GUARD_API_URL="file://$PLUGIN_ROOT/tests/fixtures/$1.json"; fi
-  rm -rf "$A/.git/jev-guard/cache"
+  rm -rf "$A/.git/jev-guard/cache" "$A/.git/jev-guard/api-down"
 }
 
 # new_world -- bare remote + clone A with one commit, cd into A.

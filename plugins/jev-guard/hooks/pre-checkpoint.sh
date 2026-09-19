@@ -15,19 +15,27 @@ git rev-parse -q --verify HEAD >/dev/null 2>&1 || exit 0
 # Without GS_TREE (a manual /jev-guard:scan), scan the work tree against HEAD.
 GS_BASE=${GS_BASE:-HEAD}
 
-# ponytail: sequential calls, 2 s each at worst. Files already scanned at edit
+# ponytail: sequential calls, 2 s each at worst, cut off by the 8 s budget below.
 # time come from the cache; if cold scans outgrow git-sync's 15 s Stop timeout,
 # batch them into one request (spec 4, option B).
 cd "$(git rev-parse --show-toplevel)" || exit 0
-OUT=$( { if [ -n "${GS_TREE:-}" ]; then git diff --name-only --no-renames "$GS_BASE" "$GS_TREE"
-         else git diff --name-only --no-renames HEAD; git ls-files -o --exclude-standard; fi; } |
-       while read -r f; do jg_scan "$GS_BASE" "${GS_TREE:-}" "$f"; done)
+# quotePath off: otherwise a path with non-ASCII characters comes out as
+# "na\303\257ve.sh", matches no file, and is silently skipped.
+# Time budget: git-sync's Stop hook is killed at 15 s, checkpoint and all.
+START=$(date +%s)
+OUT=$( { if [ -n "${GS_TREE:-}" ]; then git -c core.quotePath=false diff --name-only --no-renames "$GS_BASE" "$GS_TREE"
+         else git -c core.quotePath=false diff --name-only --no-renames HEAD
+              git -c core.quotePath=false ls-files -o --exclude-standard; fi; } |
+       while IFS= read -r f; do
+         if [ $(( $(date +%s) - START )) -ge 8 ]; then printf 'skipped\t%s\tnot scanned, time budget\n' "$f"; continue; fi
+         jg_scan "$GS_BASE" "${GS_TREE:-}" "$f"
+       done)
 [ -n "$OUT" ] || exit 0
 
-case "$OUT" in
-  *"block	"*|block*)
-    printf 'jev-guard: checkpoint NOT pushed, plaintext secret found:\n%s\n' "$(jg_report "$OUT")"
-    exit 2 ;;
-esac
+# Anchored at line start: a path ending in "block" must not match.
+if printf '%s\n' "$OUT" | grep -q "^block$(printf '\t')"; then
+  printf 'jev-guard: checkpoint NOT pushed, plaintext secret found:\n%s\n' "$(jg_report "$OUT")"
+  exit 2
+fi
 printf 'jev-guard:\n%s\n' "$(jg_report "$OUT")"
 exit 0

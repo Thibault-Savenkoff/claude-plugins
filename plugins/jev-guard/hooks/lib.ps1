@@ -5,6 +5,8 @@ $JgUrl = if ($env:JEV_GUARD_API_URL) { $env:JEV_GUARD_API_URL } else { "https://
 # Windows PowerShell 5.1 pipes to native programs in ASCII by default, which
 # would mangle any non-ASCII text in a diff on the way to curl.
 $OutputEncoding = New-Object Text.UTF8Encoding $false
+# And read git's output as UTF-8, or non-ASCII paths come back garbled.
+[Console]::OutputEncoding = New-Object Text.UTF8Encoding $false
 $Inv = [Globalization.CultureInfo]::InvariantCulture
 
 function Jg-Config([string]$Name, [string]$Default = "") {
@@ -35,7 +37,7 @@ function Jg-Log([string]$Line) {
 }
 
 function Jg-Excluded([string]$Path) {
-  git check-ignore -q --no-index -- $Path 2>$null
+  git check-ignore -q -- $Path 2>$null
   if ($LASTEXITCODE -eq 0) { return $true }
   foreach ($g in @(git config --get-all jev-guard.exclude 2>$null)) {
     if ($g -and $Path -like $g) { return $true }
@@ -64,6 +66,8 @@ function Jg-Ask([string]$Path, [string]$Text) {
   $key = ("$Path`n$Text" + $q) | git hash-object --stdin
   $c = Join-Path (Jg-Dir) "cache/$key"
   if (Test-Path $c) { return (Get-Content $c -Raw).Trim() -split " " }
+  $down = Join-Path (Jg-Dir) "api-down"
+  if ((Test-Path $down) -and (Get-Item $down).LastWriteTime -gt (Get-Date).AddMinutes(-1)) { return $null }
   $body = @{ model = "jev-latest"; state = @{ path = $Path; added_lines = $Text };
              questions = ($q | ConvertFrom-Json) } | ConvertTo-Json -Depth 10 -Compress
   # curl, not Invoke-RestMethod: same client as the sh side, present on
@@ -77,7 +81,7 @@ function Jg-Ask([string]$Path, [string]$Text) {
     $r = ($raw -join "`n") | ConvertFrom-Json
     $n = $r.answers.secret.noul
     if ($null -eq $n) { throw "unexpected response: $raw" }
-  } catch { Jg-Log "api: $_"; return $null }
+  } catch { Jg-Log "api: $_"; Set-Content -Path $down -Value ""; return $null }
   $k = if ($r.answers.kind.choice) { $r.answers.kind.choice } else { "unknown" }
   $f = if ($null -ne $r.answers.kind.confidence) { $r.answers.kind.confidence } else { 0 }
   $ans = "{0} {1} {2}" -f ([double]$n).ToString($Inv), $k, ([double]$f).ToString($Inv)
@@ -101,8 +105,8 @@ function Jg-Scan([string]$Base, [string]$Tree, [string]$Path) {
   if (-not $add) { return }
   if ([Text.Encoding]::UTF8.GetByteCount($add) -gt [int](Jg-Config "maxKb" "64") * 1024) { return }
   if (Get-Command gitleaks -ErrorAction SilentlyContinue) {
-    $add | gitleaks stdin --no-banner -l error *> $null
-    if ($LASTEXITCODE -ne 0) {
+    $add | gitleaks stdin --no-banner -l error --exit-code 42 *> $null
+    if ($LASTEXITCODE -eq 42) {
       $v = if ((Jg-Mode) -eq "strict") { "block" } else { "warn" }
       return "$v`t$Path`tgitleaks"
     }
@@ -128,7 +132,8 @@ function Jg-Wire {
 function Jg-Report([string[]]$Lines) {
   ($Lines | Where-Object { $_ } | ForEach-Object {
     $v, $p, $why = $_ -split "`t"
-    if ($v -eq "artifact") { "- ${p}: $why, consider git-sync ignore-patterns" }
+    if ($v -eq "skipped") { "- ${p}: $why" }
+    elseif ($v -eq "artifact") { "- ${p}: $why, consider git-sync ignore-patterns" }
     elseif ($v -eq "block") { "- ${p}: BLOCKED, plaintext secret ($why)" }
     else { "- ${p}: possible plaintext secret ($why)" }
   }) -join "`n"

@@ -32,10 +32,12 @@ jg_dir() { _d="$(git rev-parse --git-dir)/jev-guard"; mkdir -p "$_d/cache"; prin
 
 jg_log() { printf '%s %s\n' "$(date '+%Y-%m-%dT%H:%M:%S')" "$1" >> "$(jg_dir)/error.log"; }
 
-# jg_excluded <path> -- files that are never sent to the API: gitignored ones
-# (they never travel anyway) and the user's jev-guard.exclude globs.
+# jg_excluded <path> -- files that are never sent to the API: untracked
+# gitignored ones (they never travel) and the user's jev-guard.exclude globs.
+# No --no-index: a tracked file that matches .gitignore still travels with a
+# checkpoint, so it has to be scanned.
 jg_excluded() {
-  git check-ignore -q --no-index -- "$1" 2>/dev/null && return 0
+  git check-ignore -q -- "$1" 2>/dev/null && return 0
   # A pipe, not `for _g in $(...)`: that would glob-expand the patterns
   # against the current directory before they ever reach `case`.
   git config --get-all jev-guard.exclude 2>/dev/null | {
@@ -80,6 +82,10 @@ jg_ask() {
   _key=$( { printf '%s\n%s' "$1" "$2"; cat "${CLAUDE_PLUGIN_ROOT}/hooks/questions.json"; } | git hash-object --stdin)
   _c="$(jg_dir)/cache/$_key"
   if [ -f "$_c" ]; then cat "$_c"; return 0; fi
+  # After a failure, stay quiet for a minute instead of paying the 2 s timeout
+  # on every file: git-sync's whole Stop hook has only 15 s.
+  _down="$(jg_dir)/api-down"
+  if [ -n "$(find "$_down" -mmin -1 2>/dev/null)" ]; then return 1; fi
   _body=$(printf '{"model":"jev-latest","state":{"path":"%s","added_lines":"%s"},"questions":%s}' \
             "$(printf '%s' "$1" | jg_esc)" "$(printf '%s' "$2" | jg_esc)" "$(cat "${CLAUDE_PLUGIN_ROOT}/hooks/questions.json")")
   # One try, two seconds: a hook is no place for retries.
@@ -87,13 +93,13 @@ jg_ask() {
               -H "Authorization: Bearer $TYPESAFE_API_KEY" \
               -H "Content-Type: application/json" \
               --data-binary @- "$JG_URL" 2>&1); then
-    jg_log "api: $_r"; return 1
+    jg_log "api: $_r"; : > "$_down"; return 1
   fi
   _r=$(printf '%s' "$_r" | tr -d '\n\r\t ')
   _n=$(printf '%s' "$_r" | sed -n 's/.*"secret":{[^}]*"noul":\([0-9.eE+-]*\).*/\1/p')
   _k=$(printf '%s' "$_r" | sed -n 's/.*"choice":"\([a-z]*\)".*/\1/p')
   _f=$(printf '%s' "$_r" | sed -n 's/.*"confidence":\([0-9.eE+-]*\).*/\1/p')
-  if [ -z "$_n" ]; then jg_log "unexpected response: $_r"; return 1; fi
+  if [ -z "$_n" ]; then jg_log "unexpected response: $_r"; : > "$_down"; return 1; fi
   printf '%s %s %s\n' "$_n" "${_k:-unknown}" "${_f:-0}" | tee "$_c"
 }
 
@@ -120,8 +126,10 @@ jg_scan() {
   [ "$(printf '%s' "$_add" | wc -c)" -le $(( $(jg_config maxKb 64) * 1024 )) ] || return 0
   # The deterministic scanner goes first: a known pattern needs no model, and
   # Jev reads the diff as data it can be argued with (spec section 5).
+  # Only exit 42 means a leak: gitleaks also exits 1 on its own errors (an old
+  # version without `stdin`), and that must not flag every file as a secret.
   if command -v gitleaks >/dev/null 2>&1 &&
-     ! printf '%s\n' "$_add" | gitleaks stdin --no-banner -l error >/dev/null 2>&1; then
+     { printf '%s\n' "$_add" | gitleaks stdin --no-banner -l error --exit-code 42 >/dev/null 2>&1; [ $? -eq 42 ]; }; then
     printf '%s\t%s\t%s\n' "$([ "$(jg_mode)" = strict ] && echo block || echo warn)" "$3" "gitleaks"
     return 0
   fi
@@ -148,7 +156,8 @@ jg_wire() {
 # jg_report <lines> -- human-readable summary of jg_scan output.
 jg_report() {
   printf '%s\n' "$1" | awk -F '\t' 'NF {
-    if ($1 == "artifact") printf "- %s: %s, consider git-sync ignore-patterns\n", $2, $3
+    if ($1 == "skipped") printf "- %s: %s\n", $2, $3
+    else if ($1 == "artifact") printf "- %s: %s, consider git-sync ignore-patterns\n", $2, $3
     else printf "- %s: %s (%s)\n", $2, ($1 == "block" ? "BLOCKED, plaintext secret" : "possible plaintext secret"), $3
   }'
 }
