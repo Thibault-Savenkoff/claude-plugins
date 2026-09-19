@@ -23,8 +23,8 @@ run_stop >/dev/null
 assert_eq "" "$(sync_branch_sha 'git-sync/feature%2Fy')" "deleted branch's checkpoint"
 
 it "nested branches coexist across machines (D/F conflict)"
-# refs/heads/a/b est impossible tant que refs/heads/a existe. Un nom de branche
-# encode en un seul segment sous git-sync/ rend le conflit inatteignable.
+# refs/heads/a/b cannot exist while refs/heads/a does. Encoding the branch
+# name into a single segment under git-sync/ makes the conflict unreachable.
 cleanup_world
 new_world
 clone_b
@@ -37,7 +37,7 @@ cd "$B"
 git checkout -q -b feat/sub
 printf 'on feat/sub\n' >> file.txt
 out=$(run_stop)
-assert_contains "$out" "checkpoint pushed" "feat/sub doit pouvoir se synchroniser"
+assert_contains "$out" "checkpoint pushed" "feat/sub must be able to sync"
 [ -n "$(sync_branch_sha 'git-sync/feat%2Fsub')" ] || fail "feat/sub missing from the remote"
 [ -n "$(sync_branch_sha 'git-sync/feat')" ] || fail "feat's checkpoint disappeared"
 

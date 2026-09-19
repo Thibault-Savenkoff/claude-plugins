@@ -3,7 +3,7 @@
 
 $JgUrl = if ($env:JEV_GUARD_API_URL) { $env:JEV_GUARD_API_URL } else { "https://api.typesafe.ai/v1/systemone" }
 # Windows PowerShell 5.1 pipes to native programs in ASCII by default, which
-# would mangle the accents in questions.json on the way to curl.
+# would mangle any non-ASCII text in a diff on the way to curl.
 $OutputEncoding = New-Object Text.UTF8Encoding $false
 $Inv = [Globalization.CultureInfo]::InvariantCulture
 

@@ -1,17 +1,17 @@
 {
   "secret": {
     "type": "noul",
-    "instructions": "Les lignes de `added_lines`, ajoutées au fichier `path`, contiennent une valeur d'authentification réelle en clair : clé d'API, jeton d'accès, mot de passe, clé privée, ou chaîne de connexion contenant des identifiants. Une valeur manifestement factice, un placeholder, ou une référence à une variable d'environnement ne compte pas."
+    "instructions": "The lines in `added_lines`, added to the file `path`, contain a real authentication value in plaintext: an API key, access token, password, private key, or connection string containing credentials. An obviously fake value, a placeholder, or a reference to an environment variable does not count."
   },
   "kind": {
     "type": "choice",
-    "instructions": "Nature du fichier `path`, d'après son chemin et les lignes `added_lines`",
+    "instructions": "The nature of the file `path`, judging from its path and the lines in `added_lines`",
     "criteria": {
-      "source": "Code source écrit à la main",
-      "config": "Configuration, variables d'environnement, ou manifeste",
-      "artifact": "Fichier produit par un build ou un outil",
-      "vendored": "Dépendance tierce copiée dans le dépôt",
-      "data": "Données ou contenu, pas du code"
+      "source": "Hand-written source code",
+      "config": "Configuration, environment variables, or a manifest",
+      "artifact": "A file produced by a build or a tool",
+      "vendored": "A third-party dependency copied into the repository",
+      "data": "Data or content, not code"
     }
   }
 }

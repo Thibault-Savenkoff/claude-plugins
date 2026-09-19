@@ -14,8 +14,8 @@ it "drops carriage returns and other control characters"
 got=$(printf 'x\r\001y\n' | jg_esc)
 assert_eq 'xy' "$got" "escaped"
 
-it "keeps accents as they are (valid JSON as UTF-8)"
-assert_eq 'clé' "$(printf 'clé' | jg_esc)" "escaped"
+it "keeps non-ASCII text as is (valid JSON as UTF-8)"
+assert_eq 'naïve' "$(printf 'naïve' | jg_esc)" "escaped"
 
 # answer <json> -- feed one API response to jg_ask, print its parse.
 answer() {

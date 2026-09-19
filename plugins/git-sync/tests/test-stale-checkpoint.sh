@@ -28,7 +28,7 @@ assert_not_contains "$out" "based on a different commit" "needless warning"
 
 it "but leaves a fresh checkpoint from the other machine alone"
 cd "$B"; git pull -q --ff-only 2>/dev/null
-printf 'travail de B\n' >> file.txt
+printf 'work from B\n' >> file.txt
 run_stop >/dev/null
 ckpt_b=$(sync_branch_sha git-sync/main)
 [ -n "$ckpt_b" ] || fail "B did not push"

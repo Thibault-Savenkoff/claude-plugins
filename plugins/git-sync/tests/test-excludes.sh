@@ -12,10 +12,10 @@ run_stop >/dev/null
 
 it "keeps secrets and noise out of the checkpoint"
 printf 'SECRET=1\n' > .env
-printf 'cle privee\n' > deploy.pem
-printf 'jeton\n' > aws-credentials
+printf 'private key\n' > deploy.pem
+printf 'token\n' > aws-credentials
 mkdir -p node_modules && printf 'x\n' > node_modules/junk.js
-printf 'vrai code\n' >> file.txt
+printf 'real code\n' >> file.txt
 run_stop >/dev/null
 CKPT=$(sync_branch_sha git-sync/main)
 files=$(git ls-tree -r --name-only "$CKPT")
@@ -25,7 +25,7 @@ for bad in .env deploy.pem aws-credentials node_modules/junk.js; do
 done
 
 it "does not exclude a file the repository already tracks"
-git add -f .env && git commit -qm "l'utilisateur a choisi de suivre .env"
+git add -f .env && git commit -qm "user chose to track .env"
 printf 'SECRET=2\n' > .env
 run_stop >/dev/null
 CKPT=$(sync_branch_sha git-sync/main)

@@ -24,7 +24,7 @@ it "A opens a session and receives B's addition, typing nothing"
 cd "$A"
 out=$(run_start)
 assert_contains "$(cat file.txt)" "B: second pass" "B's addition received by A"
-assert_contains "$(cat file.txt)" "A: first pass" "travail de A conserve"
+assert_contains "$(cat file.txt)" "A: first pass" "work from A kept"
 
 it "A continues and hands back"
 printf 'A: third pass\n' >> file.txt
