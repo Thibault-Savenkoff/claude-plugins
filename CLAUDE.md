@@ -16,8 +16,9 @@ _Updated 2026-09-19._
 - No test framework (no bats/Pester): plain sh test scripts, run against both sh and pwsh hooks, no network.
 
 ### In flight
-- On main: jev-guard 0.2.0, git-sync 2.2.0. Branch `fix/windows-paths` (0.2.1) pushed, awaiting merge; Windows live test half done (edit-time block works; checkpoint veto unverified).
-- Not done: test on real Windows / PowerShell 5.1, and macOS (BSD awk); decide whether `strict` becomes the default.
+- On main: jev-guard 0.2.0, git-sync 2.2.0. Branch `fix/windows-paths` (0.2.1) pushed, awaiting merge.
+- Verified live on Windows 11 / PS 5.1 (2026-09-19): edit-time block, checkpoint veto, and clean checkpoint push all work.
+- Not done: macOS (BSD awk); the .ps1 hooks on a Windows without Git Bash; decide whether `strict` becomes the default.
 - Verified live (2026-09-19): hooks fire in a real headless Claude Code session (PostToolUse block reaches
   Claude; git-sync Stop pushes a clean checkpoint and vetoes one with a secret); a 401 is logged without
   disabling the guard; real gitleaks 8.30.1 (installed on srv-tsa) exits 42 on leaks; artifact hint measured.
@@ -27,5 +28,5 @@ _Updated 2026-09-19._
 - In git-sync's PowerShell, running preCheckpoint as an in-process scriptblock let an `exit` kill the whole hook;
   it now runs in a child PowerShell with `; exit $LASTEXITCODE` to keep the native exit code.
 - pre-checkpoint scripts must locate themselves from `$0`/`$PSScriptRoot`: git-sync calls them with its own `CLAUDE_PLUGIN_ROOT` set.
-- Windows: Claude Code passes `C:\...` paths, git returns `C:/...`; never derive repo-relative paths by string stripping, use `git rev-parse --show-prefix`. Live test on Windows (PS 5.1) showed the sh hook may run via Git Bash; unconfirmed which one ran.
+- Windows: Claude Code passes `C:\...` paths, git returns `C:/...`; never derive repo-relative paths by string stripping, use `git rev-parse --show-prefix`. On Windows with Git Bash, Claude Code runs the sh hooks, not the .ps1 ones (confirmed by the wired preCheckpoint command): the .ps1 path only matters without Git Bash.
 - `lib.sh` reads `JEV_GUARD_API_URL` once at source time; tests that change it afterwards must set `JG_URL`.
