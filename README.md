@@ -30,7 +30,8 @@ Once added, you can install any of the plugins below with a single command.
 | Plugin | Description | Category | Install Command |
 | :--- | :--- | :--- | :--- |
 | **[`claude-model-advisor`](./plugins/claude-model-advisor)** | Recommends the ideal Claude model and reasoning effort based on task complexity. | Productivity / AI | `/plugin install claude-model-advisor` |
-| **[`git-sync`](./plugins/git-sync)** | Auto-syncs git repositories across machines on session start and stop. | Productivity | `/plugin install git-sync` |
+| **[`git-sync`](./plugins/git-sync)** | Carries work in progress between machines as a checkpoint branch, without WIP commits in your history. | Productivity | `/plugin install git-sync` |
+| **[`jev-guard`](./plugins/jev-guard)** | Flags plaintext secrets in the files Claude writes, and can hold back a git-sync checkpoint that carries one. | Security | `/plugin install jev-guard` |
 
 ---
 
@@ -52,12 +53,26 @@ Analyzes task scope, codebase blast radius, and ambiguity to recommend the most 
 
 ### 2. Git Sync (`git-sync`)
 
-Keeps your repository continuously in sync across multiple development workstations without manual Git commands.
+Carries your work in progress between machines without leaving `WIP: auto-sync` commits in the project's history.
 
-- **On Session Start**: Automatically pulls the latest remote changes.
-- **On Session End**: Automatically creates a commit with the session diff and pushes upstream.
+- **On Session Stop**: Pushes the work tree to a throwaway `git-sync/<branch>` checkpoint, without committing anything.
+- **On Session Start**: Pulls, then applies the other machine's checkpoint as uncommitted work.
+- **`/git-sync:land`**: The only way anything enters your branch: Claude proposes commits from the diff, you approve.
 
 👉 [Read full documentation](./plugins/git-sync/README.md)
+
+---
+
+### 3. Jev Guard (`jev-guard`) — v0.1.0
+
+Catches plaintext secrets while there is still time to fix them, using the [TypeSafe](https://docs.typesafe.ai) API (model Jev) with **your own API key** (`TYPESAFE_API_KEY`).
+
+- **After every Edit/Write**: The lines Claude just added are checked; Claude is warned (`warn`, the default) or must remove the secret (`strict`).
+- **Before every git-sync checkpoint**: A last scan of everything the checkpoint carries, including files written through Bash. In `strict`, a secret holds the push back.
+- **Fail-open**: If the API is down or slow, nothing is blocked and no work is lost.
+- **Privacy**: The added lines are sent to TypeSafe, a third party. Gitignored and excluded files never are.
+
+👉 [Read full documentation](./plugins/jev-guard/README.md)
 
 ---
 
@@ -68,57 +83,14 @@ claude-plugins/
 ├── .claude-plugin/
 │   └── marketplace.json         # Central marketplace catalog registry
 ├── plugins/
-│   ├── claude-model-advisor/    # Model & Reasoning Effort routing plugin
-│   │   ├── .claude-plugin/
-│   │   │   └── plugin.json
-│   │   ├── skills/
-│   │   │   └── model-advisor/
-│   │   │       └── SKILL.md
-│   │   └── README.md
-│   │
-│   └── git-sync/                # Automated multi-machine Git sync plugin
-│       ├── .claude-plugin/
-│       │   └── plugin.json
-│       ├── commands/
-│       │   ├── config.md
-│       │   ├── land.md
-│       │   └── land-context.sh
-│       ├── hooks/
-│       │   ├── hooks.json
-│       │   ├── ignore-patterns.txt
-│       │   ├── legacy-commit.ps1
-│       │   ├── legacy-commit.sh
-│       │   ├── lib.ps1
-│       │   ├── lib.sh
-│       │   ├── session-end-archive.ps1
-│       │   ├── session-end-archive.sh
-│       │   ├── session-start.ps1
-│       │   ├── session-start.sh
-│       │   ├── stop-sync.ps1
-│       │   └── stop-sync.sh
-│       ├── skills/
-│       │   └── notes/
-│       │       ├── extract-transcript.py
-│       │       └── SKILL.md
-│       ├── tests/
-│       │   ├── lib.sh
-│       │   ├── run.sh
-│       │   ├── test-branch-lifecycle.sh
-│       │   ├── test-checkpoint.sh
-│       │   ├── test-crossplatform.sh
-│       │   ├── test-degenerate.sh
-│       │   ├── test-excludes.sh
-│       │   ├── test-file-kinds.sh
-│       │   ├── test-land-aftermath.sh
-│       │   ├── test-land-context.sh
-│       │   ├── test-pingpong.sh
-│       │   ├── test-remote-naming.sh
-│       │   └── test-submodules.sh
-│       └── README.md
-│
+│   ├── claude-model-advisor/    # Model & reasoning effort routing
+│   ├── git-sync/                # Multi-machine work-in-progress sync
+│   └── jev-guard/               # Plaintext secret detection
 ├── LICENSE                      # MIT License (covers all plugins)
 └── README.md                    # Marketplace documentation
 ```
+
+Each plugin has its own `README.md`; `git-sync` and `jev-guard` also ship a `tests/run.sh`.
 
 ---
 
