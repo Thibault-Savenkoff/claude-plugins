@@ -5,16 +5,18 @@
 
 # The one field we need from the hook payload. File paths with an escaped
 # quote in them are not worth a JSON parser.
-FILE=$(tr -d '\n' | sed -n 's/.*"file_path"[[:space:]]*:[[:space:]]*"\([^"]*\)".*/\1/p' | sed 's/\\\\/\\/g')
+FILE=$(tr -d '\n' | sed -n 's/.*"file_path"[[:space:]]*:[[:space:]]*"\([^"]*\)".*/\1/p' | sed 's/\\\\/\\/g; s|\\|/|g')
 [ -n "$FILE" ] && [ -f "$FILE" ] || exit 0
 cd "$(dirname "$FILE")" 2>/dev/null || exit 0
 jg_active || exit 0
 git rev-parse -q --verify HEAD >/dev/null 2>&1 || exit 0
 
 jg_wire
-ROOT=$(git rev-parse --show-toplevel)
-REL=${FILE#"$ROOT"/}
-cd "$ROOT" || exit 0
+# Relative path from git itself: on Windows, Claude Code gives C:\...\x and git
+# gives C:/..., so stripping one from the other left an absolute path, which no
+# .gitignore rule or jev-guard.exclude glob ever matches.
+REL="$(git rev-parse --show-prefix)${FILE##*/}"
+cd "$(git rev-parse --show-toplevel)" || exit 0
 
 OUT=$(jg_scan HEAD "" "$REL")
 [ -n "$OUT" ] || exit 0
