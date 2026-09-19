@@ -9,10 +9,9 @@ git rev-parse -q --verify HEAD *> $null
 if ($LASTEXITCODE -ne 0) { exit 0 }
 
 Jg-Wire
-$root = (git rev-parse --show-toplevel)
-$full = (Resolve-Path -LiteralPath $file).Path.Replace("\", "/")
-$rel = if ($full.StartsWith("$root/")) { $full.Substring($root.Length + 1) } else { $full }
-Set-Location $root
+# See post-edit.sh: the relative path comes from git, not from string surgery.
+$rel = "$(git rev-parse --show-prefix)$(Split-Path -Leaf $file)"
+Set-Location (git rev-parse --show-toplevel)
 
 $out = @(Jg-Scan "HEAD" "" $rel)
 if (-not $out) { exit 0 }
