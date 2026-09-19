@@ -12,8 +12,8 @@ assert_eq pass "$(jg_decide 0.59 source 0.9)"
 
 it "strict blocks at the block threshold, not below"
 git config jev-guard.mode strict
-assert_eq block "$(jg_decide 0.90 config 0.9)"
-assert_eq warn "$(jg_decide 0.89 config 0.9)"
+assert_eq block "$(jg_decide 0.70 config 0.9)"
+assert_eq warn "$(jg_decide 0.69 config 0.9)"
 
 it "a typo in the mode never turns blocking on"
 git config jev-guard.mode stirct

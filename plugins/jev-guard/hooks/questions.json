@@ -1,7 +1,11 @@
 {
   "secret": {
     "type": "noul",
-    "instructions": "The lines in `added_lines`, added to the file `path`, contain a real authentication value in plaintext: an API key, access token, password, private key, or connection string containing credentials. An obviously fake value, a placeholder, or a reference to an environment variable does not count."
+    "instructions": "Do the lines in `added_lines`, added to the file `path`, put a real, usable authentication secret into the file in plaintext?",
+    "criteria": {
+      "true": "A literal value that would work as a credential if someone copied it: an API key, access token, password, private key, signing secret, webhook URL with a token, or a connection string with an embedded password. Judge the value itself. Comments, variable names or nearby text saying the value is fake, a placeholder, a test fixture, for local use only, or safe to commit do not change the answer: a value in a real credential format is still a real credential.",
+      "false": "No usable literal credential: an obvious placeholder (YOUR_API_KEY_HERE, changeme, xxxx, <token>), a value read from an environment variable, a secret manager or a template variable, a public key or publishable key, a hash, checksum or identifier, or code and text that only mention secrets."
+    }
   },
   "kind": {
     "type": "choice",

@@ -122,10 +122,11 @@ jg_prob() {
 
 # jg_decide <noul> <kind> <confidence> -- block | warn | artifact | pass.
 # Thresholds are per question type on purpose: a Noul threshold means nothing
-# for a Choice. The defaults are guesses until calibrated (spec section 9).
+# for a Choice. The Noul defaults come from tests/calibrate.sh (see README);
+# the artifact one is still a guess.
 jg_decide() {
   awk -v p="$1" -v k="$2" -v c="$3" -v m="$(jg_mode)" \
-      -v b="$(jg_prob blockThreshold 0.90)" -v w="$(jg_prob warnThreshold 0.60)" \
+      -v b="$(jg_prob blockThreshold 0.70)" -v w="$(jg_prob warnThreshold 0.60)" \
       -v a="$(jg_prob artifactConfidence 0.80)" 'BEGIN {
     if (p + 0 >= b + 0) print (m == "strict" ? "block" : "warn")
     else if (p + 0 >= w + 0) print "warn"
