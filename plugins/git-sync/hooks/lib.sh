@@ -175,6 +175,19 @@ gs_snapshot_tree() {
   rm -f "$_tmp"
 }
 
+# gs_pre_checkpoint <base> <tree> -- run git-sync.preCheckpoint, if set, just
+# before a checkpoint is pushed (jev-guard uses it to stop a plaintext secret
+# leaving the machine). Its stdout joins MSG. Exit 2 vetoes the push; anything
+# else -- a crash, a command that no longer exists -- lets it through, because
+# an optional add-on must never cost the user their checkpoint.
+gs_pre_checkpoint() {
+  _cmd=$(gs_config preCheckpoint)
+  [ -n "$_cmd" ] || return 0
+  _out=$(GS_BASE="$1" GS_TREE="$2" sh -c "$_cmd" 2>/dev/null) && _rc=0 || _rc=$?
+  [ -z "$_out" ] || MSG="${MSG:+$MSG }$_out"
+  [ "$_rc" -ne 2 ]
+}
+
 # gs_worktree_tree -- printing wrapper, for the one caller that only wants the
 # tree and can afford a subshell.
 gs_worktree_tree() { gs_snapshot_tree; printf '%s' "$GS_TREE"; }

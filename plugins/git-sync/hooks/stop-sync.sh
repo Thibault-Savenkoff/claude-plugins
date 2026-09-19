@@ -66,6 +66,8 @@ if [ "$(gs_mode)" = "checkpoint" ]; then
         MSG="${MSG% }git-sync: work is committed, retired the stale checkpoint on $SYNC_BRANCH."
       fi
     fi
+  elif ! gs_pre_checkpoint "$HEAD_SHA" "$TREE"; then
+    MSG="${MSG:+$MSG }git-sync: checkpoint not pushed (vetoed by git-sync.preCheckpoint). Your work is untouched locally."
   else
     STAT=$(git diff --shortstat "$HEAD_SHA" "$TREE" 2>/dev/null || echo "")
     SKIP_CI=" [skip ci]"

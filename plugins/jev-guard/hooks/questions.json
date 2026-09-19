@@ -1,0 +1,17 @@
+{
+  "secret": {
+    "type": "noul",
+    "instructions": "Les lignes de `added_lines`, ajoutées au fichier `path`, contiennent une valeur d'authentification réelle en clair : clé d'API, jeton d'accès, mot de passe, clé privée, ou chaîne de connexion contenant des identifiants. Une valeur manifestement factice, un placeholder, ou une référence à une variable d'environnement ne compte pas."
+  },
+  "kind": {
+    "type": "choice",
+    "instructions": "Nature du fichier `path`, d'après son chemin et les lignes `added_lines`",
+    "criteria": {
+      "source": "Code source écrit à la main",
+      "config": "Configuration, variables d'environnement, ou manifeste",
+      "artifact": "Fichier produit par un build ou un outil",
+      "vendored": "Dépendance tierce copiée dans le dépôt",
+      "data": "Données ou contenu, pas du code"
+    }
+  }
+}
