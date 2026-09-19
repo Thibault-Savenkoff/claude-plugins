@@ -10,8 +10,8 @@ one off the machine. The judgment comes from the
 - **After every Edit/Write**, the lines Claude just added (plus the file's path)
   are sent to Jev with two questions: does this add a real credential in clear,
   and what kind of file is this. Code, not the model, decides what to do.
-  - `warn` (default): you and Claude get a message; nothing is blocked.
-  - `strict`: Claude is told to remove the secret before going on.
+  - `warn`: you and Claude get a message; nothing is blocked.
+  - `strict` (default): Claude is told to remove the secret before going on.
   - A file that looks generated gets a hint to add it to git-sync's ignore patterns.
 - **Before git-sync pushes a checkpoint**, the same scan runs on everything the
   checkpoint carries, including files written through Bash or by hand. In
@@ -32,7 +32,7 @@ tells you when gitleaks is missing.
    (shell profile, or `env` in `~/.claude/settings.json`). Every user brings
    their own; without one the plugin does nothing at all.
 2. `claude plugin install jev-guard@ts-plugins`
-3. Optional: `/jev-guard:config` to switch to `strict`.
+3. Optional: `/jev-guard:config` to switch to `warn` if false alarms get in the way.
 
 The git-sync hook wires itself (`git-sync.preCheckpoint` in `.git/config`) the
 first time Claude writes a file in the repo, and follows the plugin's path
@@ -61,7 +61,7 @@ All in git config, per repo (or `--global`):
 
 | Key | Default | |
 |---|---|---|
-| `jev-guard.mode` | `warn` | `off`, `warn`, `strict` |
+| `jev-guard.mode` | `strict` | `off`, `warn`, `strict` |
 | `jev-guard.warnThreshold` | `0.60` | probability of a secret that triggers a warning |
 | `jev-guard.blockThreshold` | `0.70` | probability that blocks, in `strict` |
 | `jev-guard.artifactConfidence` | `0.80` | confidence needed for the "generated file" hint |

@@ -7,7 +7,7 @@ Current jev-guard settings:
 
 - repo: !`git rev-parse --show-toplevel 2>/dev/null || echo "(not a git repo)"`
 - API key: !`[ -n "$TYPESAFE_API_KEY" ] && echo "set" || echo "MISSING -- jev-guard does nothing"`
-- mode: !`git config --get jev-guard.mode || echo "warn (default)"`
+- mode: !`git config --get jev-guard.mode || echo "strict (default)"`
 - warn threshold: !`git config --get jev-guard.warnThreshold || echo "0.60 (default)"`
 - block threshold: !`git config --get jev-guard.blockThreshold || echo "0.70 (default)"`
 - artifact confidence: !`git config --get jev-guard.artifactConfidence || echo "0.80 (default)"`
@@ -38,7 +38,7 @@ Tell them when relevant:
   party. Gitignored files and `jev-guard.exclude` globs never are.
 - **strict** makes Claude remove a flagged secret before going on, and makes
   git-sync hold back a checkpoint that contains one. A false positive then
-  costs a checkpoint, which is why `warn` is the default.
+  costs a checkpoint; a leaked key costs a key rotation, which is why `strict` is the default.
 - **If gitleaks is not installed, say so first and recommend installing it**
   (<https://github.com/gitleaks/gitleaks#installing>). It runs locally, before
   any API call, and catches known key formats deterministically -- including

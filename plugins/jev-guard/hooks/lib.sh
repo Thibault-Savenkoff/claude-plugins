@@ -32,7 +32,7 @@ jg_valid_prob() {
 # JG_MODE, JG_WARN, JG_BLOCK, JG_ART, JG_MAXKB, JG_EXCLUDES, JG_DIR, JG_Q, JG_NOW.
 jg_load() {
   JG_LOADED=1
-  _mode=warn; _w=; _b=; _a=; _kb=; JG_EXCLUDES=
+  _mode=strict; _w=; _b=; _a=; _kb=; JG_EXCLUDES=
   # --get-regexp prints keys lowercased; a later value overrides an earlier
   # one, as it does for `git config --get`.
   _cfg=$(git config --get-regexp '^jev-guard\.' 2>/dev/null)
@@ -62,7 +62,7 @@ jg_load() {
   JG_NOW=$(date +%s)
 }
 
-# jg_mode -- off | warn (default) | strict.
+# jg_mode -- off | warn | strict (default).
 jg_mode() { [ -n "${JG_LOADED:-}" ] || jg_load; printf '%s\n' "$JG_MODE"; }
 
 # jg_active -- inside a repo, the user brought a key, and not switched off.

@@ -5,6 +5,7 @@
 new_world
 
 it "warn: Claude and the user are told, the checkpoint still goes"
+git config jev-guard.mode warn
 api secret
 printf 'KEY=sk-live-abc\n' > conf.ini
 out=$(edit conf.ini)
