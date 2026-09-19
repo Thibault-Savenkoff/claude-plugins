@@ -16,7 +16,7 @@ _Updated 2026-09-19._
 - No test framework (no bats/Pester): plain sh test scripts, run against both sh and pwsh hooks, no network.
 
 ### In flight
-- On main: jev-guard 0.2.2 (installed on srv-tsa; Windows still on 0.2.1 until updated), git-sync 2.2.0.
+- On main: jev-guard 0.2.2, installed on srv-tsa and Windows, git-sync 2.2.0.
 - Verified live on Windows 11 / PS 5.1 (2026-09-19): edit-time block, checkpoint veto, and clean checkpoint push all work.
 - Windows timing (0.2.2, 5 files): 8.1 s -> 2.9 s, all scanned; jev-guard suite green under Git Bash.
 - Not done: macOS (BSD awk); the .ps1 hooks on a Windows without Git Bash; decide whether `strict` becomes the default.
