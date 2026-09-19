@@ -11,10 +11,11 @@ _Updated 2026-09-19._
 - preCheckpoint contract: exit 2 vetoes the push, anything else (crash, missing command) lets it through.
 - Default mode stays `warn`: thresholds (0.60 / 0.90) are uncalibrated guesses; revisit `strict` default after calibration.
 - Each user brings their own `TYPESAFE_API_KEY`; without it the plugin is inert.
+- All text in the repo is English, no exceptions (user rule) — except quoted legacy identifiers like `## État courant` in git-sync's upgrade notes.
 - No test framework (no bats/Pester): plain sh test scripts, run against both sh and pwsh hooks, no network.
 
 ### In flight
-- All changes staged, not committed. Spec asks for a diff review from a local machine before merge.
+- `feat/jev-guard` pushed (signed commits). No PR opened, not merged: the user reviews the diff from a local machine first.
 - Not done: spec §8 adversarial test and §9 calibration (need a real key); `skills/review/SKILL.md` skipped;
   PowerShell hooks tested with pwsh 7 on Linux only, never on real Windows / PowerShell 5.1.
 
