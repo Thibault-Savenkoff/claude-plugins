@@ -1,0 +1,17 @@
+{
+  "secret": {
+    "type": "noul",
+    "instructions": "The lines in `added_lines`, added to the file `path`, contain a real authentication value in plaintext: an API key, access token, password, private key, or connection string containing credentials. An obviously fake value, a placeholder, or a reference to an environment variable does not count."
+  },
+  "kind": {
+    "type": "choice",
+    "instructions": "The nature of the file `path`, judging from its path and the lines in `added_lines`",
+    "criteria": {
+      "source": "Hand-written source code",
+      "config": "Configuration, environment variables, or a manifest",
+      "artifact": "A file produced by a build or a tool",
+      "vendored": "A third-party dependency copied into the repository",
+      "data": "Data or content, not code"
+    }
+  }
+}

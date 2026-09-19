@@ -8,7 +8,7 @@
   "plugins": [
     {
       "name": "git-sync",
-      "description": "Auto-pull on session start, auto-commit + push on session stop.",
+      "description": "Carries work in progress between machines as a checkpoint branch, without WIP commits in your history.",
       "source": "./plugins/git-sync",
       "category": "productivity"
     },
@@ -17,6 +17,12 @@
       "description": "Automatically recommends the optimal Claude model (Haiku 4.5, Sonnet 5, Opus 5) and reasoning effort level (Low to Ultracode).",
       "source": "./plugins/claude-model-advisor",
       "category": "productivity"
+    },
+    {
+      "name": "jev-guard",
+      "description": "Flags plaintext secrets in the files Claude writes and can hold back a git-sync checkpoint that carries one. Bring your own TypeSafe API key.",
+      "source": "./plugins/jev-guard",
+      "category": "security"
     }
   ]
 }

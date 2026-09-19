@@ -8,7 +8,7 @@ clone_b
 
 it "A pushes a checkpoint (change, addition, deletion)"
 printf 'line 2 from A\n' >> file.txt
-printf 'nouveau depuis A\n' > added.txt
+printf 'new from A\n' > added.txt
 printf 'to delete\n' > doomed.txt
 git add doomed.txt && git commit -qm "add doomed" && git push -q origin main
 rm doomed.txt
@@ -51,22 +51,22 @@ assert_contains "$body" "Git-Sync-Machine: machineB" "checkpoint owner"
 
 cleanup_world
 
-# Les deux refus se testent sur un monde neuf : les cas precedents laissent
-# volontairement A et B en divergence, ce qui masquerait ce qu'on veut voir.
+# Both refusals are tested on a fresh world: the previous cases deliberately
+# leave A and B diverged, which would hide what we want to see.
 new_world
 clone_b
 
 it "B refuses to apply over changes that are not its own"
-# La distinction qui compte : du travail deja pousse par soi-meme peut etre
-# ecrase sans rien perdre, du travail jamais pousse ne le peut pas.
-printf 'travail de A\n' >> file.txt
+# The distinction that matters: work you already pushed yourself can be
+# overwritten without loss; work never pushed cannot.
+printf 'work from A\n' >> file.txt
 run_stop >/dev/null
 cd "$B"; git pull -q --ff-only 2>/dev/null
 printf 'local work never pushed\n' >> file.txt
 out=$(run_start)
 assert_contains "$out" "local changes" "refusal"
 assert_contains "$(cat file.txt)" "local work never pushed" "B's work is intact"
-assert_not_contains "$(cat file.txt)" "travail de A" "nothing was applied"
+assert_not_contains "$(cat file.txt)" "work from A" "nothing was applied"
 
 it "B refuses when the bases diverge"
 git checkout -q -- .; git clean -qfd 2>/dev/null

@@ -1,5 +1,6 @@
 # Push the work tree to a checkpoint branch on session stop.
 # See hooks/stop-sync.sh for why this never runs `git commit`.
+$GsStart = [DateTimeOffset]::UtcNow.ToUnixTimeSeconds()
 . (Join-Path $env:CLAUDE_PLUGIN_ROOT "hooks/lib.ps1")
 
 if (-not (Gs-Enabled)) { exit 0 }
@@ -52,7 +53,11 @@ if ((Gs-Mode) -eq "checkpoint") {
         $msg = "git-sync: work is committed, retired the stale checkpoint on $syncBranch."
       }
     }
+  } elseif (-not ($pre = Gs-PreCheckpoint $headSha $tree).Ok) {
+    if ($pre.Out) { $msg = ("$msg " + $pre.Out).Trim() }
+    $msg = ("$msg git-sync: checkpoint not pushed (vetoed by git-sync.preCheckpoint). Your work is untouched locally.").Trim()
   } else {
+    if ($pre.Out) { $msg = ("$msg " + $pre.Out).Trim() }
     $stat = (git diff --shortstat $headSha $tree 2>$null) -join ""
     $skipCi = if (Gs-Bool "checkpointCi") { "" } else { " [skip ci]" }
     $machine = Gs-Machine

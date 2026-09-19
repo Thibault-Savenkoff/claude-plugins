@@ -1,0 +1,17 @@
+{
+  "hooks": {
+    "PostToolUse": [
+      {
+        "matcher": "Edit|Write|MultiEdit",
+        "hooks": [
+          {
+            "type": "command",
+            "command": "sh \"${CLAUDE_PLUGIN_ROOT}/hooks/post-edit.sh\"",
+            "commandWindows": "powershell -NoProfile -ExecutionPolicy Bypass -File \"%CLAUDE_PLUGIN_ROOT%\\hooks\\post-edit.ps1\"",
+            "timeout": 10
+          }
+        ]
+      }
+    ]
+  }
+}

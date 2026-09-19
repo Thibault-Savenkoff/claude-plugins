@@ -23,14 +23,14 @@ cd "$B"; run_start >/dev/null
 [ -x script.sh ] || fail "script.sh is not executable on B"
 
 it "a file B ignores locally still arrives when it comes from A"
-# Le .gitignore fait partie du checkpoint, donc les deux machines finissent par
-# partager les memes regles -- mais entre deux syncs elles peuvent differer.
+# The .gitignore is part of the checkpoint, so both machines end up sharing
+# the same rules -- but between two syncs they can differ.
 cd "$B"; printf 'local.txt\n' > .gitignore
 cd "$A"; printf 'data\n' > local.txt
 run_stop >/dev/null
 cd "$B"
 out=$(run_start)
-# B a un .gitignore local non pousse : le garde doit refuser, pas ecraser
+# B has a local, unpushed .gitignore: the guard must refuse, not overwrite
 assert_contains "$out" "local changes" "refusal expected"
 assert_eq "local.txt" "$(cat .gitignore)" "B's .gitignore is intact"
 

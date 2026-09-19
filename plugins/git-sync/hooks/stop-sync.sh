@@ -10,6 +10,7 @@
 # That is the whole point of 2.0: the sync stops borrowing the project's
 # history as a transport and stops leaving "WIP: auto-sync" behind in it.
 set -e
+GS_START=$(date +%s)
 
 . "${CLAUDE_PLUGIN_ROOT}/hooks/lib.sh"
 
@@ -66,6 +67,8 @@ if [ "$(gs_mode)" = "checkpoint" ]; then
         MSG="${MSG% }git-sync: work is committed, retired the stale checkpoint on $SYNC_BRANCH."
       fi
     fi
+  elif ! gs_pre_checkpoint "$HEAD_SHA" "$TREE"; then
+    MSG="${MSG:+$MSG }git-sync: checkpoint not pushed (vetoed by git-sync.preCheckpoint). Your work is untouched locally."
   else
     STAT=$(git diff --shortstat "$HEAD_SHA" "$TREE" 2>/dev/null || echo "")
     SKIP_CI=" [skip ci]"

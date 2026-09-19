@@ -14,6 +14,7 @@ Current git-sync settings in this repo:
 - project notes nudge: !`git config --get git-sync.notes || echo "on in checkpoint mode, off in commit mode (default)"`
 - transcript archive: !`git config --get git-sync.archive || echo "false (default)"`
 - commit-mode identity: !`git config --get git-sync.identity || echo "bot (default)"`
+- pre-checkpoint command: !`git config --get git-sync.preCheckpoint || echo "(none)"`
 
 The user asked: $ARGUMENTS
 

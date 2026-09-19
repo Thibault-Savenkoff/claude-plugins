@@ -4,7 +4,7 @@
 # the command could not find a checkpoint the hook had just pushed.
 . "$(dirname "$0")/lib.sh"
 
-# Ce fichier teste un script shell, pas les hooks : une seule passe suffit.
+# This file tests a shell script, not the hooks: one pass is enough.
 [ "${GS_SHELL:-sh}" = "sh" ] || exit 0
 
 ctx() { sh "$PLUGIN_ROOT/commands/land-context.sh" 2>&1; }

@@ -1,0 +1,9 @@
+{
+  "name": "jev-guard",
+  "version": "0.1.0",
+  "description": "Flags plaintext secrets in the files Claude writes, and can stop a git-sync checkpoint that carries one. Uses the TypeSafe API (Jev) with your own key.",
+  "author": {
+    "name": "Thibault SAVENKOFF"
+  },
+  "keywords": ["secrets", "git-sync", "typesafe", "jev"]
+}

@@ -38,7 +38,7 @@ it "two concurrent sessions in one repository do not alarm each other"
 new_world
 printf 'some work\n' >> file.txt
 o1=$(run_stop); o2=$(run_stop)
-# La seconde voit un remote deja porteur de son contenu exact : rien ne manque.
+# The second finds the remote already holding its exact content: nothing is missing.
 assert_not_contains "$o2" "failed" "needlessly alarming message"
 assert_eq "$(awk '{print $2}' .git/git-sync-pushed)" \
           "$(sync_branch_sha git-sync/main)" "local state consistent with the remote"

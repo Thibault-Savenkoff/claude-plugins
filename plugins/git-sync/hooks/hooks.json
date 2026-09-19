@@ -9,7 +9,7 @@
             "command": "sh \"${CLAUDE_PLUGIN_ROOT}/hooks/session-start.sh\"",
             "commandWindows": "powershell -NoProfile -ExecutionPolicy Bypass -File \"%CLAUDE_PLUGIN_ROOT%\\hooks\\session-start.ps1\"",
             "timeout": 15,
-            "statusMessage": "Recuperation du travail en cours..."
+            "statusMessage": "Fetching work in progress..."
           }
         ]
       }
@@ -22,7 +22,7 @@
             "command": "sh \"${CLAUDE_PLUGIN_ROOT}/hooks/stop-sync.sh\"",
             "commandWindows": "powershell -NoProfile -ExecutionPolicy Bypass -File \"%CLAUDE_PLUGIN_ROOT%\\hooks\\stop-sync.ps1\"",
             "timeout": 15,
-            "statusMessage": "Sauvegarde du checkpoint..."
+            "statusMessage": "Saving checkpoint..."
           }
         ]
       }
@@ -35,7 +35,7 @@
             "command": "sh \"${CLAUDE_PLUGIN_ROOT}/hooks/session-end-archive.sh\"",
             "commandWindows": "powershell -NoProfile -ExecutionPolicy Bypass -File \"%CLAUDE_PLUGIN_ROOT%\\hooks\\session-end-archive.ps1\"",
             "timeout": 10,
-            "statusMessage": "Archivage du transcript..."
+            "statusMessage": "Archiving transcript..."
           }
         ]
       }
