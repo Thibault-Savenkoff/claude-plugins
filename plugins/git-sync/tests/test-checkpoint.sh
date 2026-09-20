@@ -64,7 +64,9 @@ git config --unset git-sync.disabled
 
 it "honours GIT_SYNC_DISABLED"
 before=$(sync_branch_sha git-sync/main)
-GIT_SYNC_DISABLED=1 run_stop >/dev/null
+# A var prefixed onto a *function* call survives it in bash (macOS /bin/sh),
+# though not in dash: set and unset it explicitly, or the next case runs disabled.
+export GIT_SYNC_DISABLED=1; run_stop >/dev/null; unset GIT_SYNC_DISABLED
 assert_eq "$before" "$(sync_branch_sha git-sync/main)" "checkpoint unchanged"
 
 it "refuses politely on a detached HEAD"

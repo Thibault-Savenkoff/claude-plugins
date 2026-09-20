@@ -95,7 +95,8 @@ it "the wiring survives a plugin path with quotes, \$ and an apostrophe"
 ODD="$WORLD/it's \$odd \"dir\"/jev-guard"
 mkdir -p "$(dirname "$ODD")"; cp -R "$PLUGIN_ROOT" "$ODD"
 git config --unset git-sync.preCheckpoint
-CLAUDE_PLUGIN_ROOT="$ODD" edit conf.ini >/dev/null
+_keep=$CLAUDE_PLUGIN_ROOT  # see test-checkpoint.sh: a var prefixed onto a function call can outlive it
+export CLAUDE_PLUGIN_ROOT="$ODD"; edit conf.ini >/dev/null; export CLAUDE_PLUGIN_ROOT="$_keep"
 reset; out=$(git_sync_stop)
 assert_contains "$out" "not pushed" "stop message"
 assert_eq "" "$(pushed)" "remote checkpoint"

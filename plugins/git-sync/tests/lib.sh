@@ -32,7 +32,6 @@ it() { CURRENT="$1"; printf '  - %s\n' "$1"; }
 
 # new_world -- bare remote + clone A, cd into A. Sets $WORLD, $REMOTE, $A.
 new_world() {
-  skip_unless_shell_available
   WORLD=$(mktemp -d)
   REMOTE="$WORLD/remote.git"
   A="$WORLD/A"
@@ -89,3 +88,7 @@ skip_unless_shell_available() {
 }
 
 sync_branch_sha() { git ls-remote "$REMOTE" "refs/heads/$1" 2>/dev/null | cut -f1; }
+
+# Every test file sources this, and several build their world inline instead of
+# calling new_world: the pwsh guard has to fire here, not there.
+skip_unless_shell_available
