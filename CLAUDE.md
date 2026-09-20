@@ -19,7 +19,7 @@ _Updated 2026-09-20.
 - On main: jev-guard 0.3.0 (strict default), installed on srv-tsa; Windows still on 0.2.2 until updated. git-sync 2.2.0.
 - Verified live on Windows 11 / PS 5.1 (2026-09-19): edit-time block, checkpoint veto, and clean checkpoint push all work.
 - Windows timing (0.2.2, 5 files): 8.1 s -> 2.9 s, all scanned; jev-guard suite green under Git Bash.
-- macOS verified (2026-09-20, git 2.54 Apple): both suites green after two test-harness fixes; BSD awk parses answers fine. Not done: the .ps1 hooks on a Windows without Git Bash (Sandbox script written in session).
+- macOS verified (2026-09-20, git 2.54 Apple): both suites green after two test-harness fixes; BSD awk parses answers fine. The .ps1 hooks verified in Windows Sandbox (2026-09-20, PS 5.1, no Git Bash, MinGit): warn message, strict block, checkpoint veto exit 75. Nothing left untested.
 - Verified live (2026-09-19): hooks fire in a real headless Claude Code session (PostToolUse block reaches
   Claude; git-sync Stop pushes a clean checkpoint and vetoes one with a secret); a 401 is logged without
   disabling the guard; real gitleaks 8.30.1 (installed on srv-tsa) exits 42 on leaks; artifact hint measured.
