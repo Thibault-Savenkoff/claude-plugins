@@ -19,7 +19,7 @@ _Updated 2026-09-20.
 - On main: jev-guard 0.3.0 (strict default), installed on srv-tsa; Windows still on 0.2.2 until updated. git-sync 2.2.0.
 - Verified live on Windows 11 / PS 5.1 (2026-09-19): edit-time block, checkpoint veto, and clean checkpoint push all work.
 - Windows timing (0.2.2, 5 files): 8.1 s -> 2.9 s, all scanned; jev-guard suite green under Git Bash.
-- Not done: macOS (BSD awk) -- no Mac available, dropped for now; the .ps1 hooks on a Windows without Git Bash (Windows Sandbox script ready, see session).
+- macOS verified (2026-09-20, git 2.54 Apple): both suites green after two test-harness fixes; BSD awk parses answers fine. Not done: the .ps1 hooks on a Windows without Git Bash (Sandbox script written in session).
 - Verified live (2026-09-19): hooks fire in a real headless Claude Code session (PostToolUse block reaches
   Claude; git-sync Stop pushes a clean checkpoint and vetoes one with a secret); a 401 is logged without
   disabling the guard; real gitleaks 8.30.1 (installed on srv-tsa) exits 42 on leaks; artifact hint measured.
@@ -32,3 +32,4 @@ _Updated 2026-09-20.
 - Windows: Claude Code passes `C:\...` paths, git returns `C:/...`; never derive repo-relative paths by string stripping, use `git rev-parse --show-prefix`. On Windows with Git Bash, Claude Code runs the sh hooks, not the .ps1 ones (confirmed by the wired preCheckpoint command): the .ps1 path only matters without Git Bash.
 - Git Bash on Windows: ~2.5 s per scanned file before 0.2.2 (process start-up); every fork counts. curl there cannot read file:///c/... URLs, only file:///C:/... (tests use furl()). The user's terminal injects an invisible U+0083 before the first pasted line: give them a sacrificial `true` first line.
 - `lib.sh` reads `JEV_GUARD_API_URL` once at source time; tests that change it afterwards must set `JG_URL`.
+- A var prefixed onto a shell *function* call (`X=1 my_func`) survives the call in bash (macOS /bin/sh) but not in dash: tests must export and unset it instead. Same class: a guard called only from `new_world` never runs in tests that build their world inline.
