@@ -17,7 +17,7 @@ function Jg-Config([string]$Name, [string]$Default = "") {
 
 # See lib.sh: a typo must never turn blocking on.
 function Jg-Mode {
-  switch (Jg-Config "mode" "warn") { "off" { "off" } "strict" { "strict" } default { "warn" } }
+  switch (Jg-Config "mode" "strict") { "off" { "off" } "strict" { "strict" } default { "warn" } }
 }
 
 function Jg-Active {

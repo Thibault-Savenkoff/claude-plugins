@@ -9,17 +9,17 @@ _Updated 2026-09-19._
 - Why not a jev-guard Stop hook: Claude Code runs plugin Stop hooks in parallel, so it cannot gate
   git-sync's push; the secret would already be on the remote. Touching git-sync was accepted by the user.
 - preCheckpoint contract: exit 75 vetoes the push, anything else lets it through. Not 2: dash/busybox `sh` exit 2 on a missing script, which bricked git-sync after a jev-guard update/uninstall. git-sync passes `GS_DEADLINE` so the scan leaves time to push.
-- Secret thresholds measured with `plugins/jev-guard/tests/calibrate.sh` (real API, 49 generated cases x2): warn 0.60, block 0.70, 24/24 caught, 0 false alarms. Default mode still `warn` (user has not decided on `strict` default).
+- Secret thresholds measured with `plugins/jev-guard/tests/calibrate.sh` (real API, 49 generated cases x2): warn 0.60, block 0.70, 24/24 caught, 0 false alarms. Default mode `strict` since 0.3.0 (user decision): in `warn` a secret still reaches the remote, which forces a key rotation; a false alarm costs far less. If false alarms show up, raise blockThreshold rather than going back to warn.
 - The `secret` question wording matters more than thresholds: v1 let "this is a fake secret" comments pull real keys to ~0.53; v2 says such comments do not change the answer (-> >= 0.76). Rerun calibrate.sh after any questions.json change.
 - Each user brings their own `TYPESAFE_API_KEY`; without it the plugin is inert.
 - All text in the repo is English, no exceptions (user rule) — except quoted legacy identifiers like `## État courant` in git-sync's upgrade notes.
 - No test framework (no bats/Pester): plain sh test scripts, run against both sh and pwsh hooks, no network.
 
 ### In flight
-- On main: jev-guard 0.2.2, installed on srv-tsa and Windows, git-sync 2.2.0.
+- On main: jev-guard 0.2.2, installed on srv-tsa and Windows (branch `feat/strict-default` = 0.3.0, awaiting merge), git-sync 2.2.0.
 - Verified live on Windows 11 / PS 5.1 (2026-09-19): edit-time block, checkpoint veto, and clean checkpoint push all work.
 - Windows timing (0.2.2, 5 files): 8.1 s -> 2.9 s, all scanned; jev-guard suite green under Git Bash.
-- Not done: macOS (BSD awk); the .ps1 hooks on a Windows without Git Bash; decide whether `strict` becomes the default.
+- Not done: macOS (BSD awk); the .ps1 hooks on a Windows without Git Bash.
 - Verified live (2026-09-19): hooks fire in a real headless Claude Code session (PostToolUse block reaches
   Claude; git-sync Stop pushes a clean checkpoint and vetoes one with a secret); a 401 is logged without
   disabling the guard; real gitleaks 8.30.1 (installed on srv-tsa) exits 42 on leaks; artifact hint measured.

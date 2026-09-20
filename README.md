@@ -67,7 +67,7 @@ Carries your work in progress between machines without leaving `WIP: auto-sync` 
 
 Catches plaintext secrets while there is still time to fix them, using the [TypeSafe](https://docs.typesafe.ai) API (model Jev) with **your own API key** (`TYPESAFE_API_KEY`).
 
-- **After every Edit/Write**: The lines Claude just added are checked; Claude is warned (`warn`, the default) or must remove the secret (`strict`).
+- **After every Edit/Write**: The lines Claude just added are checked; Claude must remove the secret (`strict`, the default) or is only warned (`warn`).
 - **Before every git-sync checkpoint**: A last scan of everything the checkpoint carries, including files written through Bash. In `strict`, a secret holds the push back.
 - **Fail-open**: If the API is down or slow, nothing is blocked and no work is lost.
 - **Privacy**: The added lines are sent to TypeSafe, a third party. Gitignored and excluded files never are.

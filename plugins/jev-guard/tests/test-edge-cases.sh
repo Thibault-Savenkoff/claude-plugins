@@ -11,6 +11,7 @@ scan() {
 edit app.py >/dev/null   # wires git-sync.preCheckpoint
 
 it "warn mode: a path ending in 'block' does not veto the checkpoint"
+git config jev-guard.mode warn
 api maybe; mkdir -p src; printf 'k = 1\n' > src/codeblock
 git_sync_stop >/dev/null
 [ -n "$(pushed)" ] || fail "checkpoint held back in warn mode"

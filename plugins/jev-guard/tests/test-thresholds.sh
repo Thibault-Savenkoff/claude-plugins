@@ -5,7 +5,11 @@
 new_world
 . "$PLUGIN_ROOT/hooks/lib.sh"
 
+it "strict is the default"
+assert_eq block "$(jg_decide 0.99 config 0.9)"
+
 it "warn mode never blocks"
+git config jev-guard.mode warn
 assert_eq warn "$(jg_decide 0.99 config 0.9)"
 assert_eq warn "$(jg_decide 0.60 source 0.9)"
 assert_eq pass "$(jg_decide 0.59 source 0.9)"
