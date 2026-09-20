@@ -1,6 +1,6 @@
 ## Current state
 
-_Updated 2026-09-19._
+_Updated 2026-09-20.
 
 ### Decisions
 - jev-guard (spec in `/root/jev-guard-spec.md` on srv-tsa) hooks two places:
@@ -16,10 +16,10 @@ _Updated 2026-09-19._
 - No test framework (no bats/Pester): plain sh test scripts, run against both sh and pwsh hooks, no network.
 
 ### In flight
-- On main: jev-guard 0.2.2, installed on srv-tsa and Windows (branch `feat/strict-default` = 0.3.0, awaiting merge), git-sync 2.2.0.
+- On main: jev-guard 0.3.0 (strict default), installed on srv-tsa; Windows still on 0.2.2 until updated. git-sync 2.2.0.
 - Verified live on Windows 11 / PS 5.1 (2026-09-19): edit-time block, checkpoint veto, and clean checkpoint push all work.
 - Windows timing (0.2.2, 5 files): 8.1 s -> 2.9 s, all scanned; jev-guard suite green under Git Bash.
-- Not done: macOS (BSD awk); the .ps1 hooks on a Windows without Git Bash.
+- Not done: macOS (BSD awk) -- no Mac available, dropped for now; the .ps1 hooks on a Windows without Git Bash (Windows Sandbox script ready, see session).
 - Verified live (2026-09-19): hooks fire in a real headless Claude Code session (PostToolUse block reaches
   Claude; git-sync Stop pushes a clean checkpoint and vetoes one with a secret); a 401 is logged without
   disabling the guard; real gitleaks 8.30.1 (installed on srv-tsa) exits 42 on leaks; artifact hint measured.
